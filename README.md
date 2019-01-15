@@ -1,1 +1,2 @@
-# 499-pinghaol
+Pinghao Luo
+pinghaol@usc.edu
