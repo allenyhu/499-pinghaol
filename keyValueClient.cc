@@ -1,112 +1,124 @@
+#include <chrono>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <string>
+#include <thread>
+
+#include <grpc/grpc.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/client_context.h>
+#include <grpcpp/create_channel.h>
+#include <grpcpp/security/credentials.h>
 
 #include <grpcpp/grpcpp.h>
-
-#ifdef BAZEL_BUILD
-#include "examples/protos/keyValue.grpc.pb.h"
-#else
 #include "keyValue.grpc.pb.h"
-#endif
-
+using namespace std;
 using grpc::Channel;
 using grpc::ClientContext;
+using grpc::ClientReader;
+using grpc::ClientReaderWriter;
+using grpc::ClientWriter;
 using grpc::Status;
-using keyValue::KeyValueStore;
-using keyValue::PutRequest;
-using keyValue::PutReply;
-using keyValue::GetRequest;
-using keyValue::GetReply;
-using keyValue::DeleteRequest;
-using keyValue::DeleteReply;
+using chirp::KeyValueStore;
+using chirp::PutRequest;
+using chirp::PutReply;
+using chirp::GetRequest;
+using chirp::GetReply;
+using chirp::DeleteRequest;
+using chirp::DeleteReply;
 
-class GreeterClient {
+class KeyValueStoreClient {
  public:
-  GreeterClient(std::shared_ptr<Channel> channel)
-      : stub_(Greeter::NewStub(channel)) {}
+ KeyValueStoreClient(std::shared_ptr<Channel> channel)
+      : stub_(KeyValueStore::NewStub(channel)) {}
 
-  // Assembles the client's payload, sends it and presents the response back
-  // from the server.
-  std::string Put() {
-    PutRequest request;
+//    
+//    std::string get(std::string& key) {
+//        ClientContext context;
+//        
+//        GetRequest request;
+//        request.set_key(key);
+//        GetReply reply;
+//        
+//        std::shared_ptr<ClientReaderWriter<RouteNote, RouteNote> > stream(
+//                        stub_->RouteChat(&context));
+//        
+//        std::thread writer([stream]() {
+//            std::vector<GetRequest> requestList;
+//            requestList.push_back request;
+//
+//            stream->Write(request);
+//            stream->WritesDone();
+//        });
+//        
+//        while (stream->Read(&reply)) {
+//            std::cout << "Got message " <<reply->value<<endl;
+//        }
+//        writer.join();
+//        Status status = stream->Finish();
+//        if (!status.ok()) {
+//            std::cout << "RouteChat rpc failed." << std::endl;
+//        }
+//
+//    }
+    
+    
+    
+    
+    void put(std::string& key,std::string& value) {
+        ClientContext context;
+        
+        PutRequest request;
+        request.set_key(key);
+        request.set_value(value);
+        PutReply reply;
 
-    // Container for the data we expect from the server.
-    PutReply reply;
-
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
-    ClientContext context;
-
-    // The actual RPC.
-    Status status = stub_->put(&context, request, &reply);
-
-    // Act upon its status.
-    if (status.ok()) {
-      return reply.message();
-    } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return "RPC failed";
+        Status status = stub_->put(&context, request, &reply);
+        
+        if (status.ok()) {
+            cout<<"put success"<<endl;
+        }else {
+            cout<<"fail"<<endl;
+            std::cout << status.error_code() << ": " << status.error_message()
+            << std::endl;
+        }
     }
-  }
     
-std::string Gut() {
-    GetRequest request;
     
-    // Container for the data we expect from the server.
-    GetReply reply;
-    
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
-    ClientContext context;
-    
-    // The actual RPC.
-    Status status = stub_->Put(&context, request, &reply);
-    
-    // Act upon its status.
-    if (status.ok()) {
-        return reply.message();
-    } else {
-        std::cout << status.error_code() << ": " << status.error_message()
-        << std::endl;
-        return "RPC failed";
-    }
-}
+    void deletekey(std::string& key) {
+        ClientContext context;
+        
+        DeleteRequest request;
+        request.set_key(key);
 
-std::string Delete() {
-    deleteRequest request;
-    
-    // Container for the data we expect from the server.
-    deleteReply reply;
-    
-    // Context for the client. It could be used to convey extra information to
-    // the server and/or tweak certain RPC behaviors.
-    ClientContext context;
-    
-    // The actual RPC.
-    Status status = stub_->Put(&context, request, &reply);
-    
-    // Act upon its status.
-    if (status.ok()) {
-        return reply.message();
-    } else {
-        std::cout << status.error_code() << ": " << status.error_message()
-        << std::endl;
-        return "RPC failed";
+        DeleteReply reply;
+        
+        Status status = stub_->deletekey(&context, request, &reply);
+        
+        if (status.ok()) {
+            cout<<"delete success"<<endl;
+        }else {
+            cout<<"fail"<<endl;
+            std::cout << status.error_code() << ": " << status.error_message()
+            << std::endl;
+        }
     }
-}
+
 
  private:
-  std::unique_ptr<Greeter::Stub> stub_;
+  std::unique_ptr<KeyValueStore::Stub> stub_;
 };
 
 int main(int argc, char** argv) {
 
-  GreeterClient greeter(grpc::CreateChannel(
+  KeyValueStoreClient test(grpc::CreateChannel(
       "localhost:50000", grpc::InsecureChannelCredentials()));
 
-
-
+    std::string key = "5";
+    std::string value = "6";
+    test.put(key,value);
+    test.get(key);
+    test.deletekey(key);
   return 0;
 }
