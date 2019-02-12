@@ -33,39 +33,36 @@ class KeyValueStoreClient {
  KeyValueStoreClient(std::shared_ptr<Channel> channel)
       : stub_(KeyValueStore::NewStub(channel)) {}
 
-//    
-//    std::string get(std::string& key) {
-//        ClientContext context;
-//        
-//        GetRequest request;
-//        request.set_key(key);
-//        GetReply reply;
-//        
-//        std::shared_ptr<ClientReaderWriter<RouteNote, RouteNote> > stream(
-//                        stub_->RouteChat(&context));
-//        
-//        std::thread writer([stream]() {
-//            std::vector<GetRequest> requestList;
-//            requestList.push_back request;
-//
-//            stream->Write(request);
-//            stream->WritesDone();
-//        });
-//        
-//        while (stream->Read(&reply)) {
-//            std::cout << "Got message " <<reply->value<<endl;
-//        }
-//        writer.join();
-//        Status status = stream->Finish();
-//        if (!status.ok()) {
-//            std::cout << "RouteChat rpc failed." << std::endl;
-//        }
-//
-//    }
     
-    
-    
-    
+    std::string get(std::string& key) {
+        ClientContext context;
+
+        GetReply reply;
+
+        std::shared_ptr<ClientReaderWriter<GetRequest, GetReply> > stream(
+                        stub_->get(&context));
+
+        std::thread writer([stream,key]() {
+            GetRequest request;
+            request.set_key(key);
+            std::vector<GetRequest> requestList;
+            requestList.push_back(request);
+
+            stream->Write(request);
+            stream->WritesDone();
+        });
+
+        while (stream->Read(&reply)) {
+            std::cout << "Got message " <<reply.value()<<endl;
+        }
+        writer.join();
+        Status status = stream->Finish();
+        if (!status.ok()) {
+            std::cout << "RouteChat rpc failed." << std::endl;
+        }
+
+    }
+
     void put(std::string& key,std::string& value) {
         ClientContext context;
         
@@ -118,7 +115,10 @@ int main(int argc, char** argv) {
     std::string key = "5";
     std::string value = "6";
     test.put(key,value);
-    test.get(key);
+    std::string key1 = "6";
+    std::string value1 = "7";
+    test.put(key1,value1);
     test.deletekey(key);
+    test.get(key1);
   return 0;
 }

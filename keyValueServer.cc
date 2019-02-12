@@ -10,13 +10,22 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/grpcpp.h>
-
+#include <algorithm>
+#include <cctype>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 #include "keyValue.grpc.pb.h"
 
 
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
+using grpc::ServerReader;
+using grpc::ServerReaderWriter;
+using grpc::ServerWriter;
 using grpc::Status;
 using chirp::KeyValueStore;
 using chirp::PutRequest;
@@ -39,21 +48,26 @@ class KeyValueStoreImpl final : public KeyValueStore::Service {
         return Status::OK;
     }
     
+
     
-//    Status get(ServerContext* context,
-//                     ServerReaderWriter<GetRequest, GetReply>* stream) override {
-//        cout<<"get Connecting"<<endl;
-//        GetRequest request;
-//        GetReply reply;
-//        while (stream->Read(&request)) {
-//                reply.value = map[request->key()];
-//                stream->write(reply);
-//            }
-//        }
-//
-//        return Status::OK;
-//    }
     
+    Status get(ServerContext* context,
+                     ServerReaderWriter<GetReply, GetRequest>* stream) override {
+        cout<<"get Connecting"<<endl;
+        std::vector<GetRequest> requestList;
+        GetRequest request;
+        std::vector<GetReply> replyList;
+        GetReply reply;
+        while (stream->Read(&request)) {
+                reply.set_value( map[request.key()]);
+                stream->Write(reply);
+            }
+        
+
+        return Status::OK;
+    };
+
+
     Status deletekey(ServerContext* context, const DeleteRequest* request,DeleteReply* reply)override
     {
         //cout<<map[request->key()]<<endl;
