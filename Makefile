@@ -22,12 +22,19 @@ PROTOS_PATH = .
 
 vpath %.proto $(PROTOS_PATH)
 
-all: keyValueClient keyValueServer
+all: keyValueClient keyValueServer serviceServer serviceClient 
 
-keyValueClient: keyValue.pb.o keyValue.grpc.pb.o keyValueClient.o
+keyValueClient: keyValue.pb.o keyValue.grpc.pb.o keyValueClient.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+serviceClient: service.pb.o  service.grpc.pb.o serviceClient.o 
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+
+serviceServer: service.pb.o service.grpc.pb.o serviceServer.o store.o keyValue.pb.o keyValue.grpc.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 %.grpc.pb.cc: %.proto
@@ -37,7 +44,7 @@ keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h route_guide_client route_guide_server
+	rm -f *.o *.pb.cc *.pb.h keyValueClient keyValueServer serviceServer serviceClient 
 
 # The following is to test your system and ensure a smoother experience.
 # They are by no means necessary to actually compile a grpc-enabled software.

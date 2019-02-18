@@ -16,6 +16,14 @@ message Chirp {
   Timestamp timestamp = 5;  // The time this chirp was posted.
 }
 
+message Following {
+    repeated string username = 1;
+}
+
+message Reply {
+    repeated bytes id = 1;
+}
+
 message RegisterRequest {
   string username = 1;
 }

@@ -4,15 +4,14 @@
 #include <random>
 #include <string>
 #include <thread>
-
 #include <grpc/grpc.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
-
 #include <grpcpp/grpcpp.h>
 #include "keyValue.grpc.pb.h"
+
 using namespace std;
 using grpc::Channel;
 using grpc::ClientContext;
@@ -32,13 +31,13 @@ class KeyValueStoreClient {
  public:
  KeyValueStoreClient(std::shared_ptr<Channel> channel)
       : stub_(KeyValueStore::NewStub(channel)) {}
-
     
     std::string get(std::string& key) {
         ClientContext context;
-
+//
+//        GetRequest request;
+//        request.set_key(key);
         GetReply reply;
-
         std::shared_ptr<ClientReaderWriter<GetRequest, GetReply> > stream(
                         stub_->get(&context));
 
@@ -53,15 +52,18 @@ class KeyValueStoreClient {
         });
 
         while (stream->Read(&reply)) {
-            std::cout << "Got message " <<reply.value()<<endl;
+            std::cout << "Get message " <<reply.value()<<endl;
         }
         writer.join();
         Status status = stream->Finish();
-        if (!status.ok()) {
+        if (status.ok()) {
+            return reply.value();
+        }
+        else {
             std::cout << "RouteChat rpc failed." << std::endl;
         }
-
     }
+
 
     void put(std::string& key,std::string& value) {
         ClientContext context;
@@ -108,17 +110,12 @@ class KeyValueStoreClient {
 };
 
 int main(int argc, char** argv) {
-
   KeyValueStoreClient test(grpc::CreateChannel(
       "localhost:50000", grpc::InsecureChannelCredentials()));
 
-    std::string key = "5";
-    std::string value = "6";
-    test.put(key,value);
-    std::string key1 = "6";
-    std::string value1 = "7";
-    test.put(key1,value1);
-    test.deletekey(key);
-    test.get(key1);
+    std::string key = "0";
+    std::string value = "???";
+    test.put(key, value );
+    test.get(key);
   return 0;
 }

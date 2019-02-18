@@ -10,15 +10,13 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/grpcpp.h>
-#include <algorithm>
 #include <cctype>
 #include <fstream>
-#include <iostream>
 #include <sstream>
-#include <string>
 #include <vector>
 #include "keyValue.grpc.pb.h"
-
+#include <thread>
+#include <mutex>
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -36,33 +34,42 @@ using chirp::DeleteRequest;
 using chirp::DeleteReply;
 using namespace std;
 
+std::mutex mtx;           // mutex for critical section
+
+    
 // Logic and data behind the server's behavior.
 class KeyValueStoreImpl final : public KeyValueStore::Service {
     
-    unordered_map<string, string> map;
-    
     Status put(ServerContext* context, const PutRequest* request,PutReply* reply)override
     {
+        
+        mtx.lock();
         cout<<"Put Connecting"<<endl;
+        cout<<"put request key"<<request->key()<<endl;
+        cout<<"put value"<<request->value()<<endl;
         map[request->key()] = request->value();
+        mtx.unlock();
         return Status::OK;
+        
     }
-    
-
-    
     
     Status get(ServerContext* context,
                      ServerReaderWriter<GetReply, GetRequest>* stream) override {
-        cout<<"get Connecting"<<endl;
+                mtx.lock();
+        cout<<"Get Connecting"<<endl;
         std::vector<GetRequest> requestList;
         GetRequest request;
         std::vector<GetReply> replyList;
         GetReply reply;
         while (stream->Read(&request)) {
-                reply.set_value( map[request.key()]);
+//            cout<<"check request"<<request.key()<<endl;
+//            cout<<"Check map Value: "<<map[request.key()]<<endl;
+//            cout<<"Check map Value: "<<map["0"]<<endl;
+            reply.set_value( map[request.key()]);
+            cout<<"Value: "<<reply.value()<<endl;
                 stream->Write(reply);
             }
-        
+                mtx.unlock();
 
         return Status::OK;
     };
@@ -70,13 +77,18 @@ class KeyValueStoreImpl final : public KeyValueStore::Service {
 
     Status deletekey(ServerContext* context, const DeleteRequest* request,DeleteReply* reply)override
     {
+        mtx.lock();
         //cout<<map[request->key()]<<endl;
         cout<<"Delete Connecting"<<endl;
         map.erase(request->key());
         //cout<<map[request->key()]<<endl;
+        mtx.unlock();
         return Status::OK;
     }
     
+private:
+    unordered_map<string, string> map;
+    mutex mtx;
 };
 
 void RunServer() {
