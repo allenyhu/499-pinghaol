@@ -212,40 +212,36 @@ public:
             
         }
         
-//        bool connection;
-//        grpc_connectivity_state GetState (bool try_to_connect);
-//        cout<<GetState(connection)<<endl;
 
-//        while(true){
-//            for (int i = 0; i < follow_user.username_size();i++) {
-//                string ids = store.get(follow_user.username(i));
-//                if(list[i] < ids.length()){
-//                    for(int j = 0; j<ids.length(); j++){
-//                        string a;
-//                        a.push_back(ids[j]);
-//                        string str_chrip = store.get(a);
-//                        Chirp temp_chirp;
-//                        temp_chirp.ParseFromString(str_chrip);
-//                        reply.mutable_chirp()->set_username(temp_chirp.username());
-//                        reply.mutable_chirp()->set_text(temp_chirp.text());
-//                        reply.mutable_chirp()->set_id(temp_chirp.parent_id());
-//
-//                        reply.mutable_chirp()->set_parent_id(temp_chirp.parent_id());
-//                        reply.mutable_chirp()->mutable_timestamp()->set_seconds(temp_chirp.timestamp().seconds());
-//                        reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
-//                        writer->Write(reply);
-//
-//                    }
-//                    list[i] = ids.length();
-//                }
-//
-//                cout<<GetState()<<endl;
-////                if(connection == false){
-////                    break;
-////                }
-//            }
-//
-//        }
+        while(true){
+            for (int i = 0; i < follow_user.username_size();i++) {
+                string ids = store.get(follow_user.username(i));
+                if(list[i] < ids.length()){
+                    for(int j = 0; j<ids.length(); j++){
+                        string a;
+                        a.push_back(ids[j]);
+                        string str_chrip = store.get(a);
+                        Chirp temp_chirp;
+                        temp_chirp.ParseFromString(str_chrip);
+                        reply.mutable_chirp()->set_username(temp_chirp.username());
+                        reply.mutable_chirp()->set_text(temp_chirp.text());
+                        reply.mutable_chirp()->set_id(temp_chirp.parent_id());
+
+                        reply.mutable_chirp()->set_parent_id(temp_chirp.parent_id());
+                        reply.mutable_chirp()->mutable_timestamp()->set_seconds(temp_chirp.timestamp().seconds());
+                        reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
+                        writer->Write(reply);
+
+                    }
+                    list[i] = ids.length();
+                }
+
+                if (context->IsCancelled()) {
+                    break;
+                }
+            }
+
+        }
         return Status::OK;
     }
 
