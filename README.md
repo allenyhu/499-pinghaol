@@ -15,7 +15,9 @@ pinghaol@usc.edu
     ./serviceServer 
 
 # serviceClient:
-    rigister:./serviceClient --register test_user
+
+# register:
+    register: ./serviceClient --register test_user
             
             
 # chirp without parent:
