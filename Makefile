@@ -2,7 +2,7 @@
 
 HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)
-CXX = g++
+CXX = clang++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
 CXXFLAGS += -std=c++11
 ifeq ($(SYSTEM),Darwin)
@@ -30,9 +30,11 @@ keyValueClient: keyValue.pb.o keyValue.grpc.pb.o keyValueClient.o
 keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
+testKeyValue: testKeyValue.o keyValueServerObject.o 
+	$(CXX) $^ $(LDFLAGS) -o $@ -lgtest
+
 serviceClient: service.pb.o  service.grpc.pb.o serviceClient.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
-
 
 serviceServer: service.pb.o service.grpc.pb.o serviceServer.o store.o keyValue.pb.o keyValue.grpc.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
@@ -45,6 +47,7 @@ serviceServer: service.pb.o service.grpc.pb.o serviceServer.o store.o keyValue.p
 
 clean:
 	rm -f *.o *.pb.cc *.pb.h keyValueClient keyValueServer serviceServer serviceClient 
+
 
 # The following is to test your system and ensure a smoother experience.
 # They are by no means necessary to actually compile a grpc-enabled software.
@@ -98,6 +101,4 @@ endif
 ifneq ($(SYSTEM_OK),true)
 	@false
 endif
-
-
 

@@ -22,6 +22,8 @@ using grpc::Status;
 using chirp::KeyValueStore;
 using chirp::PutRequest;
 using chirp::PutReply;
+using chirp::ContainRequest;
+using chirp::ContainReply;
 using chirp::GetRequest;
 using chirp::GetReply;
 using chirp::DeleteRequest;
@@ -35,7 +37,8 @@ public:
     std::string get(std::string key);
 
     
-    void put(std::string& key,std::string& value);
+    int put(std::string& key,std::string& value);
+    int contain(std::string key);
 
     void deletekey(std::string &key);
     

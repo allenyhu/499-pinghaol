@@ -29,7 +29,7 @@ message RegisterRequest {
 }
 
 message RegisterReply {
-  // Empty because success/failure is signaled via GRPC status.
+    int32 contain = 1;
 }
 
 message ChirpRequest {
@@ -39,7 +39,8 @@ message ChirpRequest {
 }
 
 message ChirpReply {
-  Chirp chirp = 1;  // Returns the stored chirp.
+        Chirp chirp = 1;  // Returns the stored chirp.
+        int32 contain = 2;
 }
 
 message FollowRequest {
@@ -48,7 +49,7 @@ message FollowRequest {
 }
 
 message FollowReply {
-  // Empty because success/failure is signaled via GRPC status.
+      int32 contain = 1;
 }
 
 message ReadRequest {
@@ -57,6 +58,7 @@ message ReadRequest {
 
 message ReadReply {
   repeated Chirp chirps = 1;  // The requested chirp thread.
+  int32 contain = 2;
 }
 
 message MonitorRequest {

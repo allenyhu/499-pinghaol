@@ -57,30 +57,44 @@ public:
     Status registeruser(ServerContext* context, const RegisterRequest* request,RegisterReply* reply)override
     {
         cout<<"Registering User"<<endl;
-        string user = request->username();
-        string empty = "";
-        store.put( user ,empty);
+        int contain = store.contain(request->username());
+        if(contain == 1){
+            reply->set_contain(1);
+        }else{
+            reply->set_contain(0);
+            string user = request->username();
+            string empty = "";
+            store.put( user ,empty);
+        }
         return Status::OK;
+            
     }
     
     Status follow (ServerContext* context, const FollowRequest* request,FollowReply* reply)override
     {
-        cout<<request->username()<<" is following "<<request->to_follow()<<endl;
         string user1 = "U:"+ request->username();
         string user2 = request->to_follow();
         
-        Following follow;
-        string curr_follow = store.get(user1);
-        follow.ParseFromString(curr_follow);
-        
-        follow.add_username(user2);
-        
-        string *output = new string;
-        follow.SerializeToString(output);
-        store.put(user1, *output);
-        
+        int contain1 = store.contain(request->username());
+        int contain2 = store.contain(user2);
+
+        if(contain1 == 1 && contain2  ==1) {
+            reply->set_contain(1);
+            Following follow;
+            string curr_follow = store.get(user1);
+            follow.ParseFromString(curr_follow);
+            
+            follow.add_username(user2);
+            
+            string *output = new string;
+            follow.SerializeToString(output);
+            store.put(user1, *output);
+            delete output;
+        }else{
+            reply->set_contain(0);
+        }
+
         return Status::OK;
-        delete output;
     }
     
     Status chirp(ServerContext* context, const ChirpRequest* request,ChirpReply* reply)override
@@ -104,32 +118,44 @@ public:
             string *output1 = new string;
             newChirp.SerializeToString(output1);
             
-            store.put(id ,*output1);
-            
-            string curr_chirp = store.get(username);
-            curr_chirp += id;
-            store.put(username, curr_chirp);
-            cout<<"Posting Chirp"<<endl;
-            reply->mutable_chirp()->set_id(id);
-            
-            if( stoi(request->parent_id()) <= counter){
-                Reply children;
-                string parent_id = "R:" + request->parent_id();
-                
-                string curr_follow_id = store.get(parent_id);
-                children.ParseFromString(curr_follow_id);
-                children.add_id(id);
-                
-                
-                string *output2 = new string;
-                children.SerializeToString(output2);
-                store.put(parent_id ,*output2);
-                delete output2;
+            int contain1 = store.contain(request->username());
+            int contain2 = store.contain(request->parent_id());
+            if(request->parent_id() == ""){
+                contain2 = 1;
             }
-            
-            delete output1;
-            
-            counter++;
+            if(contain1 == 1 && contain2 == 1){
+                reply->set_contain(1);
+                store.put(id,*output1);
+                string curr_chirp = store.get(username);
+                curr_chirp += id;
+                
+                store.put(username, curr_chirp);
+                cout<<"Posting Chirp"<<endl;
+                reply->mutable_chirp()->set_id(id);
+                if(request->parent_id() != ""){
+                    if( stoi(request->parent_id()) <= counter){
+                        Reply children;
+                        string parent_id = "R:" + request->parent_id();
+                        
+                        string curr_follow_id = store.get(parent_id);
+                        children.ParseFromString(curr_follow_id);
+                        children.add_id(id);
+                        
+                        string *output2 = new string;
+                        children.SerializeToString(output2);
+                        store.put(parent_id ,*output2);
+                        delete output2;
+                    }
+                }
+                
+                delete output1;
+                counter++;
+            }else if(contain1 == 0){
+                reply->set_contain(0);
+            }else if(contain2 == 0){
+                reply->set_contain(-1);
+            }
+
             return Status::OK;
         }
 
@@ -145,38 +171,37 @@ public:
         queue <string> open_set;
         open_set.push(curr);
         
-        while(!open_set.empty()){
-            int size = open_set.size();
-            for(int i = 0; i < size; i++){
-                string curr = open_set.front();
-                open_set.pop();
-                string s = store.get(curr);
-                readChirp = reply->add_chirps();
-                readChirp->ParseFromString(s);
+        int contain = store.contain(request->chirp_id());
+        if(contain == 1){
+            reply->set_contain(1);
+            while(!open_set.empty()){
+                int size = open_set.size();
+                for(int i = 0; i < size; i++){
+                    cout<<"???"<<endl;
+                    string curr = open_set.front();
+                    open_set.pop();
+                    string s = store.get(curr);
+                    readChirp = reply->add_chirps();
+                    readChirp->ParseFromString(s);
+                    
+                    string children_chrips  = store.get( "R:" + readChirp->id());
+                    
+                    Reply children;
+                    children.ParseFromString(children_chrips);
+                    for(int i = 0; i < children.id_size(); i++){
+                        open_set.push(children.id(i));
+                    }
                 
-                string children_chrips  = store.get( "R:" + readChirp->id());
-                
-                Reply children;
-                children.ParseFromString(children_chrips);
-                for(int i = 0; i < children.id_size(); i++){
-                    open_set.push(children.id(i));
                 }
-                
             }
+        }else{
+            reply->set_contain(0);
         }
+
         
         return Status::OK;
     }
     
-//    message MonitorRequest {
-//        string username = 1;
-//    }
-//
-//    message MonitorReply {
-//        Chirp chirp = 1;
-//    }
-//
-//    rpc monitor (MonitorRequest) returns (stream MonitorReply) {}
     
     Status monitor(ServerContext* context,
                         const MonitorRequest* request,
@@ -226,7 +251,6 @@ public:
                         reply.mutable_chirp()->set_username(temp_chirp.username());
                         reply.mutable_chirp()->set_text(temp_chirp.text());
                         reply.mutable_chirp()->set_id(temp_chirp.parent_id());
-
                         reply.mutable_chirp()->set_parent_id(temp_chirp.parent_id());
                         reply.mutable_chirp()->mutable_timestamp()->set_seconds(temp_chirp.timestamp().seconds());
                         reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
@@ -240,7 +264,9 @@ public:
                     break;
                 }
             }
-
+            if (context->IsCancelled()) {
+                break;
+            }
         }
         return Status::OK;
     }

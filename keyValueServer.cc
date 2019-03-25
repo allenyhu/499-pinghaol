@@ -28,6 +28,8 @@ using grpc::Status;
 using chirp::KeyValueStore;
 using chirp::PutRequest;
 using chirp::PutReply;
+using chirp::ContainRequest;
+using chirp::ContainReply;
 using chirp::GetRequest;
 using chirp::GetReply;
 using chirp::DeleteRequest;
@@ -45,12 +47,35 @@ class KeyValueStoreImpl final : public KeyValueStore::Service {
         
         mtx.lock();
         cout<<"Put Connecting"<<endl;
-        cout<<"put request key"<<request->key()<<endl;
-        cout<<"put value"<<request->value()<<endl;
+        cout<<" put key: "<<request->key()<<endl;
+        cout<<" put value: "<<request->value()<<endl;
+        if (map.find(request->key()) == map.end() )
+        {
+            reply->set_contain(0);
+            cout<<"key doesn't exist"<<endl;
+        }else{
+            reply->set_contain(1);
+        }
         map[request->key()] = request->value();
         mtx.unlock();
         return Status::OK;
         
+    }
+    
+    Status contain (ServerContext* context, const ContainRequest* request, ContainReply* reply)override
+    {
+
+        cout<<"Contain Connecting"<<endl;
+        if (map.find(request->key()) == map.end() )
+        {
+            reply->set_contain(0);
+            cout<<"key doesn't exist"<<endl;
+        }else{
+            reply->set_contain(1);
+        }
+        
+        return Status::OK;
+
     }
     
     Status get(ServerContext* context,
@@ -62,14 +87,14 @@ class KeyValueStoreImpl final : public KeyValueStore::Service {
         std::vector<GetReply> replyList;
         GetReply reply;
         while (stream->Read(&request)) {
-//            cout<<"check request"<<request.key()<<endl;
-//            cout<<"Check map Value: "<<map[request.key()]<<endl;
-//            cout<<"Check map Value: "<<map["0"]<<endl;
+
+            cout<<map.count(request.key())<<endl;
+ 
             reply.set_value( map[request.key()]);
             cout<<"Value: "<<reply.value()<<endl;
                 stream->Write(reply);
             }
-                mtx.unlock();
+            mtx.unlock();
 
         return Status::OK;
     };

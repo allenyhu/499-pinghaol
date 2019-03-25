@@ -8,7 +8,15 @@ message PutRequest {
 }
 
 message PutReply {
-    // Empty because success/failure is signaled via GRPC status.
+    int32 contain  = 1;
+}
+
+message ContainRequest {
+    bytes key = 1;
+}
+
+message ContainReply {
+    int32 contain  = 1;
 }
 
 message GetRequest {
@@ -29,6 +37,7 @@ message DeleteReply {
 
 service KeyValueStore {
     rpc put (PutRequest) returns (PutReply) {}
+    rpc contain (ContainRequest) returns (ContainReply) {}
     rpc get (stream GetRequest) returns (stream GetReply) {}
     rpc deletekey (DeleteRequest) returns (DeleteReply) {}
 }
