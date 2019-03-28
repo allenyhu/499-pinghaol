@@ -17,22 +17,23 @@ pinghaol@usc.edu
 # serviceClient:
 
 # register:
-    register: ./serviceClient --register test_user
+     ./serviceClient --register test_user
             
             
 # chirp without parent:
     ./serviceClient --user username --chirp chirp_text 
 
-    will return a message: Success, and chirp id is: test_chirp
+    Return a message: Success, and chirp id is: test_chirp
 
 # chirp witht ParentID:
     ./serviceClient --user username --chirp chirp_text --reply test_chirp
 
-   will return a message: Success, and chirp id is: test_chirp
+    Return a message: Success, and chirp id is: test_chirp
 
 # read:
     ./serviceClient --read chirp_id
-    will return a message:
+    
+    Return a message:
         Reading chirps posted by test_user:
             chirptext
 
