@@ -1,8 +1,10 @@
 #include "store.h"
 
+
+// get method to keyvalueStore
 std::string KeyValueStoreClient::get(std::string key) {
-        ClientContext context;
     
+        ClientContext context;
         GetReply reply;
         std::shared_ptr<ClientReaderWriter<GetRequest, GetReply> > stream(stub_->get(&context));
     
@@ -26,9 +28,12 @@ std::string KeyValueStoreClient::get(std::string key) {
         }
         else {
             std::cout << "Rpc failed." << std::endl;
+            return "";
         }
+    return "";
     }
 
+// Check if a key already exist
     int KeyValueStoreClient::contain(std::string key) {
         ClientContext context;
         ContainRequest request;
@@ -42,10 +47,13 @@ std::string KeyValueStoreClient::get(std::string key) {
             cout<<"fail"<<endl;
             std::cout << status.error_code() << ": " << status.error_message()
             << std::endl;
+            return reply.contain();
         }
+        return reply.contain();
     }
 
-    int KeyValueStoreClient::put(std::string& key,std::string& value) {
+// put method to keyvalueStore
+    void KeyValueStoreClient::put(std::string& key,std::string& value) {
         ClientContext context;
         PutRequest request;
         request.set_key(key);
@@ -56,7 +64,6 @@ std::string KeyValueStoreClient::get(std::string key) {
         
         if (status.ok()) {
             cout<<"put success"<<endl;
-            return reply.contain();
         }else {
             cout<<"fail"<<endl;
             std::cout << status.error_code() << ": " << status.error_message()
@@ -64,7 +71,7 @@ std::string KeyValueStoreClient::get(std::string key) {
         }
     }
 
-
+//delete method to keyvalueStore
 void KeyValueStoreClient::deletekey(std::string& key) {
     ClientContext context;
     
@@ -81,5 +88,7 @@ void KeyValueStoreClient::deletekey(std::string& key) {
         cout<<"fail"<<endl;
         std::cout << status.error_code() << ": " << status.error_message()
         << std::endl;
+
     }
+
 }

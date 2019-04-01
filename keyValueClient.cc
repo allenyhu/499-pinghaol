@@ -61,7 +61,9 @@ class KeyValueStoreClient {
         }
         else {
             std::cout << "RouteChat rpc failed." << std::endl;
+            return "";
         }
+        return "";
     }
 
 

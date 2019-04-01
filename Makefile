@@ -22,15 +22,15 @@ PROTOS_PATH = .
 
 vpath %.proto $(PROTOS_PATH)
 
-all: keyValueClient keyValueServer serviceServer serviceClient 
+all: keyValueClient keyValueServer serviceServer serviceClient testKeyValue
 
 keyValueClient: keyValue.pb.o keyValue.grpc.pb.o keyValueClient.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o
+keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o keyValueStore.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-testKeyValue: testKeyValue.o keyValueServerObject.o 
+testKeyValue: testKeyValue.o keyValueStore.o 
 	$(CXX) $^ $(LDFLAGS) -o $@ -lgtest
 
 serviceClient: service.pb.o  service.grpc.pb.o serviceClient.o 
