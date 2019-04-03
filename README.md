@@ -21,12 +21,12 @@ pinghaol@usc.edu
             
             
 # chirp without parent:
-    ./serviceClient --user username1 --chirp chirp1
+    ./serviceClient --user username1 --chirp "chirp1"
 
     Return a message: Success, and chirp id is: chirp_id
 
 # chirp witht ParentID:
-    ./serviceClient --user username1 --chirp chirp1 --reply chirp_id
+    ./serviceClient --user username1 --chirp "chirp1" --reply chirp_id
 
     Return a message: Success, and chirp id is: chirp_id
 
