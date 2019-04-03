@@ -50,9 +50,11 @@ class ServiceLayerClient {
         
         if (status.ok()) {
             if(reply.contain() == 1){
-                cout<<"User already exist"<<endl;
+                cout<<"Follow success"<<endl;
+            }else if(reply.contain() == 2){
+                cout<<user1<<" already flowwing "<<user2<<endl;
             }else{
-                cout<<"Register success"<<endl;
+                cout<<"User doesn't esist"<<endl;
             }
         }else {
             cout<<"fail"<<endl;
@@ -166,7 +168,6 @@ int main(int argc, char** argv) {
     string array[7];
     string curr;
     cout<<"argc: "<<argc<<endl;
-    if(argc<=7){
         for(int i = 0; i<argc ; i++){
             array[i] = argv[i];
         }
@@ -208,8 +209,6 @@ int main(int argc, char** argv) {
             }else{
                 cout<<"Invalid command-line flags"<<endl;
             }
-    }else{
-        cout<<"Too many argument"<<endl;
     }
 
     return 0;

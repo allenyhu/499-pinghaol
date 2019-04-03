@@ -78,18 +78,29 @@ public:
         int contain1 = store.contain(request->username());
         int contain2 = store.contain(user2);
 
+        bool alreadyFollowing = false;
         if(contain1 == 1 && contain2  ==1) {
             reply->set_contain(1);
             Following follow;
             string curr_follow = store.get(user1);
             follow.ParseFromString(curr_follow);
             
-            follow.add_username(user2);
-            
-            string *output = new string;
-            follow.SerializeToString(output);
-            store.put(user1, *output);
-            delete output;
+            for (int i = 0; i < follow.username_size();i++) {
+                if(follow.username(i) == user2){
+                    alreadyFollowing = true;
+                    reply->set_contain(2);
+                    cout<<user1<<" already flowwing "<<user2<<endl;
+                    break;
+                }
+            }
+
+            if(!alreadyFollowing){
+                follow.add_username(user2);
+                string *output = new string;
+                follow.SerializeToString(output);
+                store.put(user1, *output);
+                delete output;
+            }
         }else{
             reply->set_contain(0);
         }
