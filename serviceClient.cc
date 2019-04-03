@@ -74,6 +74,8 @@ class ServiceLayerClient {
         if (status.ok()) {
             if(reply.contain() == 1){
                 cout<<"Follow success"<<endl;
+            }else if(reply.contain() == 2){
+                cout<<user1<<" already flowwing "<<user2<<endl;
             }else{
                 cout<<"User doesn't esist"<<endl;
             }
