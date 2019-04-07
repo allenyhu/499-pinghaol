@@ -39,6 +39,7 @@ public:
     void put(std::string& key,std::string& value);
     int contain(std::string key);
 
+
     void deletekey(std::string &key);
     
 private:

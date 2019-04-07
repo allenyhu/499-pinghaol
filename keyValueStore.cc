@@ -1,5 +1,5 @@
 #include "keyValueStore.h"
-
+using namespace std;
 //insert a key value to the map
 void KeyValueMap::Put_map(const std::string& key, const std::string& value) {
     mtx.lock();

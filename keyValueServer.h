@@ -42,7 +42,6 @@ class KeyValueStoreImpl final : public KeyValueStore::Service {
     Status get(ServerContext* context,
                      ServerReaderWriter<GetReply, GetRequest>* stream) override ;
 
-
     Status deletekey(ServerContext* context, const DeleteRequest* request,DeleteReply* reply)override;
     
 private:

@@ -53,23 +53,24 @@ std::string KeyValueStoreClient::get(std::string key) {
     }
 
 // put method to keyvalueStore
-    void KeyValueStoreClient::put(std::string& key,std::string& value) {
-        ClientContext context;
-        PutRequest request;
-        request.set_key(key);
-        request.set_value(value);
-        PutReply reply;
-        
-        Status status = stub_->put(&context, request, &reply);
-        
-        if (status.ok()) {
-            cout<<"put success"<<endl;
-        }else {
-            cout<<"fail"<<endl;
-            std::cout << status.error_code() << ": " << status.error_message()
-            << std::endl;
-        }
+void KeyValueStoreClient::put(std::string& key,std::string& value) {
+    ClientContext context;
+    PutRequest request;
+    request.set_key(key);
+    request.set_value(value);
+    PutReply reply;
+    
+    Status status = stub_->put(&context, request, &reply);
+    
+    if (status.ok()) {
+        cout<<"put success"<<endl;
+    }else {
+        cout<<"fail"<<endl;
+        std::cout << status.error_code() << ": " << status.error_message()
+        << std::endl;
     }
+}
+
 
 //delete method to keyvalueStore
 void KeyValueStoreClient::deletekey(std::string& key) {

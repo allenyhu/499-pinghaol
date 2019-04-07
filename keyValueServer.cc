@@ -1,62 +1,44 @@
 #include "keyValueServer.h"
-
-
     
-    Status KeyValueStoreImpl::put(ServerContext* context, const PutRequest* request,PutReply* reply)
-    {
-        // cout<<"Put Connecting"<<endl;
-        // cout<<" put key: "<<request->key()<<endl;
-        // cout<<" put value: "<<request->value()<<endl;
+  Status KeyValueStoreImpl::put(ServerContext* context, const PutRequest* request,PutReply* reply)
+  {
+      map.Put_map(request->key(),request->value());
+      return Status::OK;
+  }
+  
+  Status KeyValueStoreImpl::contain(ServerContext* context, const ContainRequest* request, ContainReply* reply)
+  {
+      if (map.Contain_map(request->key()))
+      {
+          reply->set_contain(1);
+      }else{
+          reply->set_contain(0);
+      }
+      return Status::OK;
+  }
+  
+  Status KeyValueStoreImpl::get(ServerContext* context,
+                   ServerReaderWriter<GetReply, GetRequest>* stream)  {
+      std::vector<GetRequest> requestList;
+      GetRequest request;
+      std::vector<GetReply> replyList;
+      GetReply reply;
+      while (stream->Read(&request)) {
 
-        map.Put_map(request->key(),request->value());
-        return Status::OK;
-        
-    }
-    
-    Status KeyValueStoreImpl::contain(ServerContext* context, const ContainRequest* request, ContainReply* reply)
-    {
+          reply.set_value(map.Get_map(request.key()));
+          //cout<<"Value: "<<reply.value()<<endl;
+          stream->Write(reply);
+          }
 
-        cout<<"Contain Connecting"<<endl;
-        if (map.Contain_map(request->key()))
-        {
-            reply->set_contain(0);
-            cout<<"key doesn't exist"<<endl;
-        }else{
-            reply->set_contain(1);
-        }
-        
-        return Status::OK;
-
-    }
-    
-    Status KeyValueStoreImpl::get(ServerContext* context,
-                     ServerReaderWriter<GetReply, GetRequest>* stream)  {
-        // cout<<"Get Connecting"<<endl;
-        std::vector<GetRequest> requestList;
-        GetRequest request;
-        std::vector<GetReply> replyList;
-        GetReply reply;
-        while (stream->Read(&request)) {
-
-            // cout<<map.count(request.key())<<endl;
- 
-            reply.set_value(map.Get_map(request.key()));
-            //cout<<"Value: "<<reply.value()<<endl;
-            stream->Write(reply);
-            }
-
-        return Status::OK;
-    };
+      return Status::OK;
+  };
 
 
-    Status KeyValueStoreImpl::deletekey(ServerContext* context, const DeleteRequest* request,DeleteReply* reply)
-    {
-        //cout<<map[request->key()]<<endl;
-        //cout<<"Delete Connecting"<<endl;
-        map.Delete_map(request->key());
-        //cout<<map[request->key()]<<endl;
-        return Status::OK;
-    }
+  Status KeyValueStoreImpl::deletekey(ServerContext* context, const DeleteRequest* request,DeleteReply* reply)
+  {
+      map.Delete_map(request->key());
+      return Status::OK;
+  }
 
 
 void RunServer() {
@@ -80,6 +62,5 @@ void RunServer() {
 
 int main(int argc, char** argv) {
   RunServer();
-
   return 0;
 }
