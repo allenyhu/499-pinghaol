@@ -217,72 +217,51 @@ public:
                         const MonitorRequest* request,
                         ServerWriter<MonitorReply>* writer) override {
         
-        cout<<"monitoring"<<endl;
-        string username = request->username();
-        string follow = store.get("U:"+ request->username());
-        Following follow_user;
-        follow_user.ParseFromString(follow);
-        MonitorReply reply;
-        
-        vector<int> list;
+    cout<<"monitoring"<<endl;
+    string username = request->username();
+    string follow = store.get("U:"+ request->username());
+    Following follow_user;
+    follow_user.ParseFromString(follow);
+    MonitorReply reply;
+    
+    vector<int> list;
+    //cout<<"testing : "<<follow_user.username_size()<<endl;
+    for (int i = 0; i < follow_user.username_size();i++) {
+        string ids = store.get(follow_user.username(i));
+        list.push_back(ids.length());
+    }
+
+    while(true){
         for (int i = 0; i < follow_user.username_size();i++) {
             string ids = store.get(follow_user.username(i));
-            list.push_back(ids.length());
-            for(char i: ids){
-                string a;
-                a.push_back(i);
-                string str_chrip = store.get(a);
-                Chirp temp_chirp;
-                temp_chirp.ParseFromString(str_chrip);
-                reply.mutable_chirp()->set_username(temp_chirp.username());
-                reply.mutable_chirp()->set_text(temp_chirp.text());
-                reply.mutable_chirp()->set_id(temp_chirp.parent_id());
-                
-                reply.mutable_chirp()->set_parent_id(temp_chirp.parent_id());
-                reply.mutable_chirp()->mutable_timestamp()->set_seconds(temp_chirp.timestamp().seconds());
-                reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
-                writer->Write(reply);
-                
-            }
-            
-        }
-        
-
-        while(true){
-            for (int i = 0; i < follow_user.username_size();i++) {
-                string ids = store.get(follow_user.username(i));
-                if(list[i] < ids.length()){
-                    for(int j = 0; j<ids.length(); j++){
-                        string a;
-                        a.push_back(ids[j]);
-                        string str_chrip = store.get(a);
-                        Chirp temp_chirp;
-                        temp_chirp.ParseFromString(str_chrip);
-                        reply.mutable_chirp()->set_username(temp_chirp.username());
-                        reply.mutable_chirp()->set_text(temp_chirp.text());
-                        reply.mutable_chirp()->set_id(temp_chirp.parent_id());
-                        reply.mutable_chirp()->set_parent_id(temp_chirp.parent_id());
-                        reply.mutable_chirp()->mutable_timestamp()->set_seconds(temp_chirp.timestamp().seconds());
-                        reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
-                        writer->Write(reply);
-
-                    }
-                    list[i] = ids.length();
+            if(list[i] < ids.length()){
+                for(int j = list[i]; j<ids.length(); j++){
+                    string a;
+                    a.push_back(ids[j]);
+                    string str_chrip = store.get(a);
+                    Chirp temp_chirp;
+                    temp_chirp.ParseFromString(str_chrip);
+                    reply.mutable_chirp()->set_username(temp_chirp.username());
+                    reply.mutable_chirp()->set_text(temp_chirp.text());
+                    reply.mutable_chirp()->set_id(temp_chirp.parent_id());
+                    reply.mutable_chirp()->set_parent_id(temp_chirp.parent_id());
+                    reply.mutable_chirp()->mutable_timestamp()->set_seconds(temp_chirp.timestamp().seconds());
+                    reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
+                    writer->Write(reply);
                 }
-
-                if (context->IsCancelled()) {
-                    break;
-                }
+                list[i] = ids.length();
             }
+
             if (context->IsCancelled()) {
                 break;
             }
         }
-        return Status::OK;
+        if (context->IsCancelled()) {
+            break;
+        }
     }
-
-
-
+    return Status::OK;
+    }
 };
 
 void RunServer() {

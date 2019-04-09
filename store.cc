@@ -2,7 +2,6 @@
 
 std::string KeyValueStoreClient::get(std::string key) {
         ClientContext context;
-    
         GetReply reply;
         std::shared_ptr<ClientReaderWriter<GetRequest, GetReply> > stream(stub_->get(&context));
     
@@ -26,7 +25,9 @@ std::string KeyValueStoreClient::get(std::string key) {
         }
         else {
             std::cout << "Rpc failed." << std::endl;
+            return "";
         }
+    return "";
     }
 
     int KeyValueStoreClient::contain(std::string key) {
@@ -42,7 +43,9 @@ std::string KeyValueStoreClient::get(std::string key) {
             cout<<"fail"<<endl;
             std::cout << status.error_code() << ": " << status.error_message()
             << std::endl;
+            return reply.contain();
         }
+        return reply.contain();
     }
 
     int KeyValueStoreClient::put(std::string& key,std::string& value) {
@@ -61,7 +64,9 @@ std::string KeyValueStoreClient::get(std::string key) {
             cout<<"fail"<<endl;
             std::cout << status.error_code() << ": " << status.error_message()
             << std::endl;
+            return -1;
         }
+        return -1;
     }
 
 
