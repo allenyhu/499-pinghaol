@@ -95,7 +95,8 @@ void ServiceLayerClient::read (int id) {
        else{
             for(int i = 0; i< reply.chirps().size();i++){
                 cout<<"Reading chirps posted by "<<reply.chirps(i).username();
-                cout<<": \n\n";
+                cout<<" at time "<<reply.chirps(i).timestamp().seconds();
+                cout<<": \n\n    ";
                 cout<<reply.chirps(i).text()<<endl;
                 cout<<"\n";
             }
@@ -116,7 +117,7 @@ void ServiceLayerClient::monitor(std::string username) {
                                                    stub_->monitor(&context, request));
     std::cout << "Start monitoring "<<endl;
     while (reader->Read(&reply)) {
-        cout<< reply.chirp().username()<<": "
+        cout<< reply.chirp().username()<<" at time "<<reply.chirp().timestamp().seconds()<<" : "
         << reply.chirp().text() <<endl;
     }
     Status status = reader->Finish();

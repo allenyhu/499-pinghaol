@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 #include "serviceLayer.h"
+using namespace std;
 
 std::vector<std::string> users = {"username1", "username2",
                                         "username3", "username4"};
 
 std::vector<std::string> chirps = {"Chirp1",	 
 									"Chirp2",
-                                 "Chirp text 3",
-                                 "Chirp text 4"};
+                                 	"Chirp text 3",
+                                	"Chirp text 4"};
 
 //Simple register
 TEST(ServiceTest, RegisterOneUser) {
@@ -67,7 +68,7 @@ TEST(ServiceTest, SimpleTestFollow) {
   	EXPECT_EQ(1, service.follow(users[1],users[2],store));
 }
 
-//User 2 is not registered
+//Test following whenUser 2 is not registered
 TEST(ServiceTest, FollowNotExistUser2) {
 	KeyValueMap store;
   	ServiceLayerImpliment service;
@@ -75,7 +76,7 @@ TEST(ServiceTest, FollowNotExistUser2) {
   	EXPECT_EQ(0, service.follow(users[1],users[2],store));
 }
 
-//User 1 is not registered
+//Test following when User 1 is not registered
 TEST(ServiceTest, FollowNotExistUser1) {
 	KeyValueMap store;
   	ServiceLayerImpliment service;
@@ -171,7 +172,6 @@ TEST(ServiceTest, ReadChirpsWithParent1) {
 	service.chirp(users[1],chirps[0],"",store);
 	service.chirp(users[1],chirps[1],"0",store);
 	std::vector<std::string> v = service.read("1",store);
-	cout<<v.size();
   	EXPECT_EQ(chirps[1], v[0]);
 }
 
@@ -182,8 +182,149 @@ TEST(ServiceTest, ReadChirpsWithParent2) {
 	service.registeruser(users[1],store);
 	service.chirp(users[1],chirps[0],"",store);
 	service.chirp(users[1],chirps[2],"0",store);
+	service.chirp(users[1],chirps[3],"0",store);
+	std::vector<std::string> v = service.read("2",store);
+	cout<<v.size()<<endl;
+  	EXPECT_EQ(chirps[3], v[0]);
+  }
+
+//Read Chirps from chirp that doesn't exist
+TEST(ServiceTest, ReadNoneExistChirp) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.chirp(users[1],chirps[0],"",store);
 	std::vector<std::string> v = service.read("1",store);
-  	EXPECT_EQ(chirps[2], v[0]);
+  	EXPECT_EQ(0, v.size());
+}
+
+//SimpleMonitorTest
+TEST(ServiceTest, SimpleMonitor) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.follow(users[1],users[2],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[2],chirps[2],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(3, v.size());
+}
+
+//SimpleMonitorTest 1
+TEST(ServiceTest, SimpleMonitorCheckChirp1) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.follow(users[1],users[2],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[2],chirps[2],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(chirps[0], v[0]);
+}
+
+
+//SimpleMonitorTest 2
+TEST(ServiceTest, SimpleMonitorCheckChirp2) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.follow(users[1],users[2],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[2],chirps[2],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(chirps[2], v[2]);
+}
+
+//Monitor multiple user 1
+TEST(ServiceTest, MultipleMonitorCheckChirp1) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.registeruser(users[3],store);
+	service.follow(users[1],users[2],store);
+	service.follow(users[1],users[3],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[3],chirps[2],"",store);
+	service.chirp(users[3],chirps[3],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(4, v.size());
+}
+
+//Monitor multiple user 2
+TEST(ServiceTest, MultipleMonitorCheckChirp2) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.registeruser(users[3],store);
+	service.follow(users[1],users[2],store);
+	service.follow(users[1],users[3],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[3],chirps[2],"",store);
+	service.chirp(users[3],chirps[3],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(chirps[0], v[0]);
+}
+
+//Monitor multiple user 3
+TEST(ServiceTest, MultipleMonitorCheckChirp3) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.registeruser(users[3],store);
+	service.follow(users[1],users[2],store);
+	service.follow(users[1],users[3],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[3],chirps[2],"",store);
+	service.chirp(users[3],chirps[3],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(chirps[3], v[3]);
+}
+
+//Checking sequence of monitoring 1
+TEST(ServiceTest, MultipleMonitorCheckChirpSequence1) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.registeruser(users[3],store);
+	service.follow(users[1],users[2],store);
+	service.follow(users[1],users[3],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[3],chirps[2],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[3],chirps[3],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(chirps[3], v[3]);
+}
+
+
+//Checking sequence of monitoring 2
+TEST(ServiceTest, MultipleMonitorCheckChirpSequence2) {
+	KeyValueMap store;
+  	ServiceLayerImpliment service;
+	service.registeruser(users[1],store);
+	service.registeruser(users[2],store);
+	service.registeruser(users[3],store);
+	service.follow(users[1],users[2],store);
+	service.follow(users[1],users[3],store);
+	service.chirp(users[2],chirps[0],"",store);
+	service.chirp(users[3],chirps[2],"",store);
+	service.chirp(users[2],chirps[1],"",store);
+	service.chirp(users[3],chirps[3],"",store);
+	std::vector<std::string> v = service.monitor(users[1],store);
+  	EXPECT_EQ(chirps[2], v[2]);
 }
 
 int main(int argc, char **argv) {

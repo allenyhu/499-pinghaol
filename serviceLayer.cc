@@ -2,8 +2,6 @@
 #include "serviceLayer.h"
 
 
-
-
 int ServiceLayerImpliment::registeruser(string user1,KeyValueMap &store)
 {
     int contain = store.Contain_map(user1);
@@ -45,6 +43,20 @@ int ServiceLayerImpliment::add(KeyValueMap &store){
     return counter;
 }
 
+int ServiceLayerImpliment::getID(KeyValueMap &store){
+    string counter_key = "CHIRP_ID_COUNTER";
+    string counter_value = "0";
+    string check = store.Get_map(counter_key);
+    if(check == ""){
+        store.Put_map(counter_key,counter_value);
+        counter = 0;
+    }else{
+        counter_value = store.Get_map(counter_key);
+        counter = stoi(counter_value);
+    }
+    return counter;
+}
+
 int ServiceLayerImpliment::follow (string user1,string user2,KeyValueMap &store)
 {
     string user = "U:"+ user1;
@@ -55,7 +67,7 @@ int ServiceLayerImpliment::follow (string user1,string user2,KeyValueMap &store)
     bool alreadyFollowing = false;
     if(contain1 == 1 && contain2  ==1) {
         Following follow;
-        string curr_follow = store.Get_map(user1);
+        string curr_follow = store.Get_map(user);
         follow.ParseFromString(curr_follow);
         
         for (int i = 0; i < follow.username_size();i++) {
@@ -71,7 +83,8 @@ int ServiceLayerImpliment::follow (string user1,string user2,KeyValueMap &store)
             follow.add_username(user2);
             string *output = new string;
             follow.SerializeToString(output);
-            store.Put_map(user1, *output);
+            store.Put_map(user, *output);
+            // cout<<"success"<<endl;
             delete output;
             return 1;
         }
@@ -84,6 +97,7 @@ int ServiceLayerImpliment::follow (string user1,string user2,KeyValueMap &store)
 
 int ServiceLayerImpliment::chirp(string user1,string chirp,string parent,KeyValueMap &store)
     {
+        getID(store);
         Chirp newChirp;
         unsigned long long time =
                     std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -115,6 +129,7 @@ int ServiceLayerImpliment::chirp(string user1,string chirp,string parent,KeyValu
             store.Put_map(username, curr_chirp);
             if(parent != ""){
                 if( stoi(parent) <= counter){
+                    cout<<"curr id: "<< counter<<endl;
                     Reply children;
                     string parent_id = "R:" + parent;
                     
@@ -152,18 +167,18 @@ vector<string> ServiceLayerImpliment::read(string chirp_id, KeyValueMap &store)
         while(!open_set.empty()){
             int size = open_set.size();
             for(int i = 0; i < size; i++){
-                cout<<"???"<<endl;
                 string curr = open_set.front();
                 open_set.pop();
                 string s = store.Get_map(curr);
                 readChirp->ParseFromString(s);
                 string children_chrips  = store.Get_map( "R:" + readChirp->id());
-                v.push_back(readChirp->text());
+                // cout<<"children: "<<children_chrips<<endl;
                 Reply children;
                 children.ParseFromString(children_chrips);
                 for(int i = 0; i < children.id_size(); i++){
                     open_set.push(children.id(i));
                 }
+                v.push_back(readChirp->text());
             
             }
         }
@@ -178,14 +193,14 @@ vector<string> ServiceLayerImpliment::read(string chirp_id, KeyValueMap &store)
 vector<string>  ServiceLayerImpliment::monitor(string user1,KeyValueMap &store)
 {
     std::vector<string> v;
-    string username = user1
-    string follow = store.get("U:"+ user1);
+    string username = user1;
+    string follow = store.Get_map("U:"+ user1);
     Following follow_user;
     follow_user.ParseFromString(follow);
     MonitorReply reply;
     
     vector<int> list;
-    //cout<<"testing : "<<follow_user.username_size()<<endl;
+    cout<<"testing : "<<follow_user.username_size()<<endl;
     for (int i = 0; i < follow_user.username_size();i++) {
         string ids = store.Get_map(follow_user.username(i));
         list.push_back(ids.length());
@@ -194,8 +209,8 @@ vector<string>  ServiceLayerImpliment::monitor(string user1,KeyValueMap &store)
     while(true){
         for (int i = 0; i < follow_user.username_size();i++) {
             string ids = store.Get_map(follow_user.username(i));
-            if(list[i] < ids.length()){
-                for(int j = list[i]; j<ids.length(); j++){
+            // cout<<"!!"<<ids<<endl;
+                for(int j = 0; j<ids.length(); j++){
                     string a;
                     a.push_back(ids[j]);
                     string str_chrip = store.Get_map(a);
@@ -209,9 +224,8 @@ vector<string>  ServiceLayerImpliment::monitor(string user1,KeyValueMap &store)
                     reply.mutable_chirp()->mutable_timestamp()->set_useconds(temp_chirp.timestamp().useconds());
                     v.push_back(reply.mutable_chirp()->text());
                 }
-                list[i] = ids.length();
-            }
         }
+        break;
     }
     return v;
 }

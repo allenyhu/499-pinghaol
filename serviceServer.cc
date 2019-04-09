@@ -1,15 +1,19 @@
 #include "serviceServer.h"
 
+//Initialize Key Value Object
 KeyValueStoreClient store(grpc::CreateChannel(
 "localhost:50000", grpc::InsecureChannelCredentials()));
 
+//Register a user
 Status ServiceLayerImpl::registeruser(ServerContext* context, const RegisterRequest* request,RegisterReply* reply)
 {
-    std::cout<<"Registering User"<<std::endl;
     int contain = store.contain(request->username());
+
     if(contain == 1){
+        //User already exist
         reply->set_contain(1);
     }else{
+        //User doesn't exist
         reply->set_contain(0);
         string user = request->username();
         string empty = "";
@@ -18,6 +22,7 @@ Status ServiceLayerImpl::registeruser(ServerContext* context, const RegisterRequ
     return Status::OK;
 }
 
+//Setup initial value for chirp id
 void ServiceLayerImpl::setup(){
     string counter_key = "CHIRP_ID_COUNTER";
     string counter_value = "0";
@@ -30,6 +35,7 @@ void ServiceLayerImpl::setup(){
     }
 }
 
+//Storing chirp id
 int ServiceLayerImpl::add(){
     string counter_key = "CHIRP_ID_COUNTER";
     string counter_value = "0";
@@ -46,11 +52,28 @@ int ServiceLayerImpl::add(){
     return counter;
 }
 
+//Check current chirp id
+int ServiceLayerImpl::getID(){
+    string counter_key = "CHIRP_ID_COUNTER";
+    string counter_value = "0";
+    string check = store.get(counter_key);
+    if(check == ""){
+        store.put(counter_key,counter_value);
+        counter = 0;
+    }else{
+        counter_value = store.get(counter_key);
+        counter = stoi(counter_value);
+    }
+    return counter;
+}
+
+//User 1 follow user 2
 Status ServiceLayerImpl::follow (ServerContext* context, const FollowRequest* request,FollowReply* reply)
 {
     string user1 = "U:"+ request->username();
     string user2 = request->to_follow();
     
+    //Check if user1 and user 2 exist.
     int contain1 = store.contain(request->username());
     int contain2 = store.contain(user2);
 
@@ -64,7 +87,7 @@ Status ServiceLayerImpl::follow (ServerContext* context, const FollowRequest* re
             if(follow.username(i) == user2){
                 alreadyFollowing = true;
                 reply->set_contain(2);
-                cout<<user1<<" already follow "<<user2<<endl;
+                // cout<<user1<<" already follow "<<user2<<endl;
                 break;
             }
         }
@@ -84,13 +107,16 @@ Status ServiceLayerImpl::follow (ServerContext* context, const FollowRequest* re
     return Status::OK;
 }
 
+//Post chirp
 Status ServiceLayerImpl::chirp(ServerContext* context, const ChirpRequest* request,ChirpReply* reply)
-    {
+    {   
+
+        getID();
         Chirp newChirp;
         unsigned long long time =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(
-                  std::chrono::system_clock::now().time_since_epoch())
-                  .count();
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
         
         string id = to_string(counter);
         string username = request->username();
@@ -105,6 +131,7 @@ Status ServiceLayerImpl::chirp(ServerContext* context, const ChirpRequest* reque
         string *output1 = new string;
         newChirp.SerializeToString(output1);
         
+        //check if user exist and if replying chirp exist
         int contain1 = store.contain(request->username());
         int contain2 = store.contain(request->parent_id());
         if(request->parent_id() == ""){
@@ -117,7 +144,7 @@ Status ServiceLayerImpl::chirp(ServerContext* context, const ChirpRequest* reque
             curr_chirp += id;
             
             store.put(username, curr_chirp);
-            cout<<"Posting Chirp"<<endl;
+            // cout<<"Posting Chirp"<<endl;
             reply->mutable_chirp()->set_id(id);
             if(request->parent_id() != ""){
                 if( stoi(request->parent_id()) <= counter){
@@ -134,27 +161,29 @@ Status ServiceLayerImpl::chirp(ServerContext* context, const ChirpRequest* reque
                     delete output2;
                 }
             }
-            
             delete output1;
             add();
         }else if(contain1 == 0){
+            //user doesn't exist
             reply->set_contain(0);
         }else if(contain2 == 0){
+            //Parent chirp doesn't exist
             reply->set_contain(-1);
         }
 
         return Status::OK;
     }
 
-
+//Reading a chirp
 Status ServiceLayerImpl::read(ServerContext* context,const ReadRequest* request,ReadReply* reply)
 {
-    cout<<"Reading Chirp"<<endl;
+    // cout<<"Reading Chirp"<<endl;
     Chirp *readChirp = new Chirp;
     
     int contain = store.contain(request->chirp_id());
     if(contain == 1){
         string curr = request->chirp_id();
+        //queue to store child chirp
         queue <string> open_set;
         open_set.push(curr);
         reply->set_contain(1);
@@ -183,17 +212,18 @@ Status ServiceLayerImpl::read(ServerContext* context,const ReadRequest* request,
     return Status::OK;
 }
 
-
+//Monitoring a user
 Status ServiceLayerImpl::monitor(ServerContext* context,
     const MonitorRequest* request,ServerWriter<MonitorReply>* writer){
     
-    cout<<"monitoring"<<endl;
+    // cout<<"monitoring"<<endl;
     string username = request->username();
     string follow = store.get("U:"+ request->username());
     Following follow_user;
     follow_user.ParseFromString(follow);
     MonitorReply reply;
     
+    //List to store the length of the user name
     vector<int> list;
     //cout<<"testing : "<<follow_user.username_size()<<endl;
     for (int i = 0; i < follow_user.username_size();i++) {
@@ -201,6 +231,7 @@ Status ServiceLayerImpl::monitor(ServerContext* context,
         list.push_back(ids.length());
     }
 
+    //Loop for monitoring
     while(true){
         for (int i = 0; i < follow_user.username_size();i++) {
             string ids = store.get(follow_user.username(i));
@@ -221,11 +252,12 @@ Status ServiceLayerImpl::monitor(ServerContext* context,
                 }
                 list[i] = ids.length();
             }
-
+            //Stop the loop
             if (context->IsCancelled()) {
                 break;
             }
         }
+        //Stop the loop
         if (context->IsCancelled()) {
             break;
         }
@@ -236,7 +268,6 @@ Status ServiceLayerImpl::monitor(ServerContext* context,
 
 void RunServer() {
     std::string server_address("0.0.0.0:50002");
-
     ServiceLayerImpl service;
     service.setup();
     ServerBuilder builder;

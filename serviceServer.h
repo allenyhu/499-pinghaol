@@ -50,6 +50,8 @@ public:
 
 	int add();
 
+	int getID();
+	
     Status registeruser(ServerContext* context, const RegisterRequest* request,RegisterReply* reply)override;
     
     Status follow (ServerContext* context, const FollowRequest* request,FollowReply* reply)override;

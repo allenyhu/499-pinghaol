@@ -54,6 +54,8 @@ public:
 
 	int add(KeyValueMap &store);
 
+	int getID(KeyValueMap &store);
+
     int chirp(string user1,string chirp,string parent,KeyValueMap &store);
     
     vector<string> read(string chirp_id,KeyValueMap &stor);

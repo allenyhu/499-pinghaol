@@ -34,23 +34,23 @@ std::string KeyValueStoreClient::get(std::string key) {
     }
 
 // Check if a key already exist
-    int KeyValueStoreClient::contain(std::string key) {
-        ClientContext context;
-        ContainRequest request;
-        request.set_key(key);
-        ContainReply reply;
-        Status status = stub_->contain(&context, request, &reply);
-        
-        if (status.ok()) {
-            return reply.contain();
-        }else {
-            cout<<"fail"<<endl;
-            std::cout << status.error_code() << ": " << status.error_message()
-            << std::endl;
-            return reply.contain();
-        }
+int KeyValueStoreClient::contain(std::string key) {
+    ClientContext context;
+    ContainRequest request;
+    request.set_key(key);
+    ContainReply reply;
+    Status status = stub_->contain(&context, request, &reply);
+    
+    if (status.ok()) {
+        return reply.contain();
+    }else {
+        cout<<"fail"<<endl;
+        std::cout << status.error_code() << ": " << status.error_message()
+        << std::endl;
         return reply.contain();
     }
+    return reply.contain();
+}
 
 // put method to keyvalueStore
 void KeyValueStoreClient::put(std::string& key,std::string& value) {
