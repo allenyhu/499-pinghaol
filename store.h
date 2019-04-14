@@ -36,9 +36,9 @@ public:
     
     std::string get(std::string key);
 
-    
-    int put(std::string& key,std::string& value);
+    void put(std::string& key,std::string& value);
     int contain(std::string key);
+
 
     void deletekey(std::string &key);
     

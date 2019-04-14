@@ -22,22 +22,27 @@ PROTOS_PATH = .
 
 vpath %.proto $(PROTOS_PATH)
 
-all: keyValueClient keyValueServer serviceServer serviceClient 
+all: keyValueServer serviceServer command testKeyValue  testService
 
 keyValueClient: keyValue.pb.o keyValue.grpc.pb.o keyValueClient.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o
+keyValueServer: keyValue.pb.o keyValue.grpc.pb.o keyValueServer.o keyValueStore.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-testKeyValue: testKeyValue.o keyValueServerObject.o 
+testKeyValue: testKeyValue.o keyValueStore.o 
 	$(CXX) $^ $(LDFLAGS) -o $@ -lgtest
 
-serviceClient: service.pb.o  service.grpc.pb.o serviceClient.o 
+command: service.pb.o  service.grpc.pb.o serviceClient.o command.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 serviceServer: service.pb.o service.grpc.pb.o serviceServer.o store.o keyValue.pb.o keyValue.grpc.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
+
+
+testService:testService.o serviceLayer.o keyValueStore.o  service.pb.o service.grpc.pb.o keyValue.pb.o keyValue.grpc.pb.o
+	$(CXX) $^ $(LDFLAGS) -o $@ -lgtest
+
 
 %.grpc.pb.cc: %.proto
 	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
@@ -46,7 +51,7 @@ serviceServer: service.pb.o service.grpc.pb.o serviceServer.o store.o keyValue.p
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h keyValueClient keyValueServer serviceServer serviceClient 
+	rm -f *.o *.pb.cc *.pb.h  keyValueServer serviceServer command testKeyValue  testService 
 
 
 # The following is to test your system and ensure a smoother experience.

@@ -1,5 +1,7 @@
 #include "store.h"
 
+
+// get method to keyvalueStore
 std::string KeyValueStoreClient::get(std::string key) {
         ClientContext context;
         GetReply reply;
@@ -30,46 +32,46 @@ std::string KeyValueStoreClient::get(std::string key) {
     return "";
     }
 
-    int KeyValueStoreClient::contain(std::string key) {
-        ClientContext context;
-        ContainRequest request;
-        request.set_key(key);
-        ContainReply reply;
-        Status status = stub_->contain(&context, request, &reply);
-        
-        if (status.ok()) {
-            return reply.contain();
-        }else {
-            cout<<"fail"<<endl;
-            std::cout << status.error_code() << ": " << status.error_message()
-            << std::endl;
-            return reply.contain();
-        }
+// Check if a key already exist
+int KeyValueStoreClient::contain(std::string key) {
+    ClientContext context;
+    ContainRequest request;
+    request.set_key(key);
+    ContainReply reply;
+    Status status = stub_->contain(&context, request, &reply);
+    
+    if (status.ok()) {
+        return reply.contain();
+    }else {
+        cout<<"fail"<<endl;
+        std::cout << status.error_code() << ": " << status.error_message()
+        << std::endl;
         return reply.contain();
     }
+    return reply.contain();
+}
 
-    int KeyValueStoreClient::put(std::string& key,std::string& value) {
-        ClientContext context;
-        PutRequest request;
-        request.set_key(key);
-        request.set_value(value);
-        PutReply reply;
-        
-        Status status = stub_->put(&context, request, &reply);
-        
-        if (status.ok()) {
-            cout<<"put success"<<endl;
-            return reply.contain();
-        }else {
-            cout<<"fail"<<endl;
-            std::cout << status.error_code() << ": " << status.error_message()
-            << std::endl;
-            return -1;
-        }
-        return -1;
+// put method to keyvalueStore
+void KeyValueStoreClient::put(std::string& key,std::string& value) {
+    ClientContext context;
+    PutRequest request;
+    request.set_key(key);
+    request.set_value(value);
+    PutReply reply;
+    
+    Status status = stub_->put(&context, request, &reply);
+    
+    if (status.ok()) {
+        cout<<"put success"<<endl;
+    }else {
+        cout<<"fail"<<endl;
+        std::cout << status.error_code() << ": " << status.error_message()
+        << std::endl;
     }
+}
 
 
+//delete method to keyvalueStore
 void KeyValueStoreClient::deletekey(std::string& key) {
     ClientContext context;
     
@@ -86,5 +88,7 @@ void KeyValueStoreClient::deletekey(std::string& key) {
         cout<<"fail"<<endl;
         std::cout << status.error_code() << ": " << status.error_message()
         << std::endl;
+
     }
+
 }
