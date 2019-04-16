@@ -40,32 +40,28 @@ using chirp::Timestamp;
 using chirp::Chirp;
 using chirp::Following;
 using chirp::Reply;
-using namespace std;
-using seconds_t = std::chrono::seconds;
+using seconds_t = std::chrono::seconds; // TODO check on this
 
-class ServiceLayerImpliment {
+class ServiceLayerImpliment {   
+ public:
+  int registeruser(std::string user1, KeyValueMap &store);
     
-public:
-    int registeruser(string user1,KeyValueMap &store);
+  int follow (std::string user1, std::string user2, KeyValueMap &store);
     
-    int follow (string user1,string user2,KeyValueMap &store);
-    
-    void setup(KeyValueMap &store);
+  void setup(KeyValueMap &store);
+  
+  int add(KeyValueMap &store);
+  
+  int getID(KeyValueMap &store);
 
-	int add(KeyValueMap &store);
+  int chirp(std::string user1, std::string chirp, std::string parent, KeyValueMap &store);
+    
+  vector<string> read(std::string chirp_id,KeyValueMap &stor);
+   
+  vector<string> monitor(std::string user1, KeyValueMap &store);
 
-	int getID(KeyValueMap &store);
-
-    int chirp(string user1,string chirp,string parent,KeyValueMap &store);
-    
-    vector<string> read(string chirp_id,KeyValueMap &stor);
-    
-    vector<string>  monitor(string user1,KeyValueMap &store);
-
-private:
-    int counter = 0;
-    
-    
+ private:
+  int counter = 0;
 };
 
 
