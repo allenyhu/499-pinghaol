@@ -55,7 +55,7 @@ public:
     void monitor(std::string username);
 
     //Stream all chirps with `hashtag`
-    void stream(std::string hashtag);
+    void stream(std::string username, std::string hashtag);
 
 
     
