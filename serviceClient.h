@@ -54,6 +54,9 @@ public:
     //Read all chrip from a user
     void monitor(std::string username);
 
+    //Stream all chirps with `hashtag`
+    void stream(std::string hashtag);
+
 
     
 private:

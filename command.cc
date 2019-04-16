@@ -5,7 +5,7 @@ int main(int argc, char** argv) {
         "localhost:50002", grpc::InsecureChannelCredentials()));
     string array[7];
     string curr;
-    cout<<"argc: "<<argc<<endl;
+    // cout<<"argc: "<<argc<<endl;
     if(argc<=7){
         for(int i = 0; i<argc ; i++){
             array[i] = argv[i];
@@ -16,7 +16,9 @@ int main(int argc, char** argv) {
                 test.registeruser(array[2]);
             }else if(array[1] == "--read"){
                 test.read(stoi(array[2]));
-            }else{
+            } else if (array[1] == "--stream") {
+	      test.stream(array[2]);	    
+	    } else{
                 cout<<"Invalid command-line flags"<<endl;
             }
         }else if(argc == 4){
