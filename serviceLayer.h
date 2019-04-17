@@ -3,20 +3,22 @@
 #include <memory>
 #include <random>
 #include <chrono>
+#include <ctime>
+#include <list>
+#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
-#include <grpc/grpc.h>
+
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
-#include <grpcpp/security/credentials.h>
+#include <grpc/grpc.h>
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/security/credentials.h>
 #include "service.grpc.pb.h"
+
 #include "keyValueStore.h"
-#include <ctime>
-#include <queue>
-#include <list>
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -56,9 +58,9 @@ class ServiceLayerImpliment {
 
   int chirp(std::string user1, std::string chirp, std::string parent, KeyValueMap &store);
     
-  vector<string> read(std::string chirp_id,KeyValueMap &stor);
+  std::vector<std::string> read(std::string chirp_id,KeyValueMap &stor);
    
-  vector<string> monitor(std::string user1, KeyValueMap &store);
+  std::vector<std::string> monitor(std::string user1, KeyValueMap &store);
 
  private:
   int counter = 0;
