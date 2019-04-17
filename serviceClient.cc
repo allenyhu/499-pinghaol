@@ -128,5 +128,10 @@ void ServiceLayerClient::monitor(std::string username) {
     }
 }
 
+void ServiceLayerClient::stream(std::string username, std::string hashtag) {
+  // TODO: add stream implementation after testing in non-grpc ServiceLayer
+  std::cout << username << " streaming: " << hashtag << std::endl;
+}
+
 
 
