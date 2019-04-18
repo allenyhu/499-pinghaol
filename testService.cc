@@ -18,7 +18,7 @@ TEST(ServiceTest, RegisterOneUser) {
 }
 
 //Register existing user
-TEST(ServiceTest, RegieterExistingUser) {
+TEST(ServiceTest, RegisterExistingUser) {
 	KeyValueMap store;
   	ServiceLayerImpliment service;
 	service.registeruser(users[1],store);
@@ -154,7 +154,7 @@ TEST(ServiceTest, SimpleRead) {
 }
 
 //Posting multiple chirps and read
-TEST(ServiceTest, ReadFromDefferentID) {
+TEST(ServiceTest, ReadFromDifferentID) {
 	KeyValueMap store;
   	ServiceLayerImpliment service;
 	service.registeruser(users[1],store);
