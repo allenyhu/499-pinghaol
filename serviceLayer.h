@@ -61,8 +61,12 @@ class ServiceLayerImpliment {
   std::vector<std::string> read(std::string chirp_id, KeyValueMap &stor);
 
   std::vector<std::string> monitor(std::string user1, KeyValueMap &store);
-
-  std::vector<std::string> stream(std::string user, std::string hashtag);
+  
+  //Processes stream requests from the client
+  //@param user: the user requesting the stream
+  //@param hashtag: the tag the user wants to stream
+  //@ret: vector of chirps with those hashtags
+  std::vector<std::string> stream(const std::string& user, const std::string& hashtag);
 
  private:
   int counter = 0;
