@@ -218,7 +218,14 @@ std::vector<std::string> ServiceLayerImpliment::monitor(std::string user1,
   return v;
 }
 
-std::vector<std::string> ServiceLayerImpliment::stream(std::string user,
-                                                       std::string hashtag) {
+std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
+                                                       const std::string& hashtag,
+						       KeyValueMap& store) {
+  int check_user = store.Contain_map(user);
+  if (!check_user) {
+    std::cout << "user doesn't exist" << std::endl;
+    return std::vector<std::string>();
+  }
+
   return std::vector<std::string>();
 }

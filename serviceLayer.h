@@ -66,7 +66,7 @@ class ServiceLayerImpliment {
   //@param user: the user requesting the stream
   //@param hashtag: the tag the user wants to stream
   //@ret: vector of chirps with those hashtags
-  std::vector<std::string> stream(const std::string& user, const std::string& hashtag);
+  std::vector<std::string> stream(const std::string& user, const std::string& hashtag, KeyValueMap& store);
 
  private:
   int counter = 0;
