@@ -225,6 +225,8 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
   if (!check_user) {
     return std::vector<std::string>();
   }
+  std::vector<std::string> chirps;
+  chirps.push_back("test"); // TODO: implement stream functionality
 
-  return std::vector<std::string>();
+  return chirps;
 }

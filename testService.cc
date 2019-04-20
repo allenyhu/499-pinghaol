@@ -327,13 +327,22 @@ TEST(ServiceTest, MultipleMonitorCheckChirpSequence2) {
   	EXPECT_EQ(chirps[2], v[2]);
 }
 
-//Tests user logged in for stream
-TEST(ServiceTest, StreamLoggedIn) {
+//Tests stream when user isn't registered 
+TEST(ServiceTest, StreamUnregisteredUser) {
   KeyValueMap store;
   ServiceLayerImpliment service;
 
   std::vector<std::string> chirps = service.stream("user", "tag", store);
   ASSERT_EQ(0, chirps.size());
+}
+
+TEST(ServiceTest, StreamRegisteredUser) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  
+  service.registeruser("user", store);
+  std::vector<std::string> chirps = service.stream("user", "tag", store);
+  ASSERT_NE(0, chirps.size()); // chirps not empty
 }
 
 int main(int argc, char **argv) {
