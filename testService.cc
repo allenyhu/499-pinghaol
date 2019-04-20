@@ -327,6 +327,15 @@ TEST(ServiceTest, MultipleMonitorCheckChirpSequence2) {
   	EXPECT_EQ(chirps[2], v[2]);
 }
 
+//Tests user logged in for stream
+TEST(ServiceTest, StreamLoggedIn) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+
+  std::vector<std::string> chirps = service.stream("user", "tag", store);
+  ASSERT_EQ(0, chirps.size());
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
