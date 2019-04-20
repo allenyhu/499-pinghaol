@@ -70,4 +70,9 @@ class ServiceLayerImpliment {
 
  private:
   int counter = 0;
+
+  //Parses chirp text to find a hashtag
+  //@param message: the body of the chirp
+  //@ret: vector of all the tags that this chirp belongs to
+  std::vector<std::string> ParseTag(const std::string& message);
 };

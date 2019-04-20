@@ -230,3 +230,9 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
 
   return chirps;
 }
+
+std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& message) {
+  //TODO: implement parsing
+  
+  return std::vector<std::string>();
+}
