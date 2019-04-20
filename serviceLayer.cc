@@ -118,7 +118,12 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
     store.Put_map(id, *output1);
     std::string curr_chirp = store.Get_map(username);
     curr_chirp += id;
-
+    
+    std::vector<std::string> tags = ParseTag(chirp);
+    for (int i = 0; i < tags.size(); i++) {
+      std::cout << tags.get(i) << std::endl;
+    }
+    
     store.Put_map(username, curr_chirp);
     if (parent != "") {
       if (stoi(parent) <= counter) {
@@ -232,7 +237,23 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
 }
 
 std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& message) {
-  //TODO: implement parsing
-  
-  return std::vector<std::string>();
+  std::vector<std::string> tags;
+  std::string txt = message;
+  size_t index = 0;
+  std::string word;
+
+  while ((index = txt.find(" ")) != std::string::npos) {
+    word = txt.substr(0, index);
+    if (!word.empty() && word.at(0) == '#') {
+      tags.push_back(word);
+    }
+    txt = txt.substr(index + 1);
+  }
+
+  // Used when hashtag is only text
+  if (!txt.empty() && txt.at(0) == '#') {
+    tags.push_back(txt);
+  }
+
+  return tags;
 }
