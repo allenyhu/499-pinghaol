@@ -327,7 +327,7 @@ TEST(ServiceTest, MultipleMonitorCheckChirpSequence2) {
   	EXPECT_EQ(chirps[2], v[2]);
 }
 
-//Tests stream when user isn't registered 
+// Tests stream when user isn't registered 
 TEST(ServiceTest, StreamUnregisteredUser) {
   KeyValueMap store;
   ServiceLayerImpliment service;
@@ -336,6 +336,7 @@ TEST(ServiceTest, StreamUnregisteredUser) {
   ASSERT_EQ(0, chirps.size());
 }
 
+// Tests stream when user is registered
 TEST(ServiceTest, StreamRegisteredUser) {
   KeyValueMap store;
   ServiceLayerImpliment service;
