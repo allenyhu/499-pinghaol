@@ -75,4 +75,10 @@ class ServiceLayerImpliment {
   //@param message: the body of the chirp
   //@ret: vector of all the tags that this chirp belongs to
   std::vector<std::string> ParseTag(const std::string& message);
+
+  //Sets up all bookkeeping info in store
+  //@param tag: the hashtag being used
+  //@param time: the timestamp of the chirp was sent at
+  //@param id: the id of the chirp that used the `tag`
+  void SetupTag(const std::string& tag, const std::string& time, const std::string& id);
 };

@@ -102,6 +102,7 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
   newChirp.set_username(user1);
   newChirp.set_text(chirp);
   newChirp.set_parent_id(parent);
+  // TODO: double check this
   newChirp.mutable_timestamp()->set_seconds(time / 1000);
   newChirp.mutable_timestamp()->set_useconds(time);
   newChirp.set_id(id);
@@ -122,6 +123,9 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
     std::vector<std::string> tags = ParseTag(chirp);
     for (int i = 0; i < tags.size(); i++) {
       std::cout << tags.get(i) << std::endl;
+      std::string* ts = new std::string;
+      newChirp.mutable_timestamp()->SerializeToString(ts);
+      SetupTag(tags.get(i), *ts, id);
     }
     
     store.Put_map(username, curr_chirp);
@@ -256,4 +260,8 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
   }
 
   return tags;
+}
+
+void SetupTag(const std::string& tag, const std::string& time, const std::string& id) {
+  // TODO: implement
 }
