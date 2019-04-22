@@ -9,7 +9,7 @@ void KeyValueMap::Put_map(const std::string& key, const std::string& value) {
 };
 
 //check if the mao cointain this key
-bool KeyValueMap::Contain_map (const std::string& key){
+bool KeyValueMap::Contain_map (const std::string& key) {
 	mtx.lock();
 	if(map.find(key) == map.end() )
     {
@@ -24,7 +24,7 @@ bool KeyValueMap::Contain_map (const std::string& key){
 }
 
 //Get the value for a giving keys
-std::string KeyValueMap::Get_map (const std::string& key){
+std::string KeyValueMap::Get_map (const std::string& key) { 
 	mtx.lock();
 	std::string  value = map[key];
 	mtx.unlock();

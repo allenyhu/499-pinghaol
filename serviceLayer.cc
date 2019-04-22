@@ -218,7 +218,15 @@ std::vector<std::string> ServiceLayerImpliment::monitor(std::string user1,
   return v;
 }
 
-std::vector<std::string> ServiceLayerImpliment::stream(std::string user,
-                                                       std::string hashtag) {
-  return std::vector<std::string>();
+std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
+                                                       const std::string& hashtag,
+						       KeyValueMap& store) {
+  int check_user = store.Contain_map(user);
+  if (!check_user) {
+    return std::vector<std::string>();
+  }
+  std::vector<std::string> chirps;
+  chirps.push_back("test"); // TODO: implement stream functionality
+
+  return chirps;
 }
