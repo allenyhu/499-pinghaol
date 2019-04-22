@@ -33,6 +33,7 @@ using chirp::RegisterReply;
 using chirp::RegisterRequest;
 using chirp::Reply;
 using chirp::ServiceLayer;
+using chirp::StreamTimeData;
 using chirp::Timestamp;
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -70,6 +71,8 @@ class ServiceLayerImpliment {
 
  private:
   int counter = 0;
+  
+  const std::string kStreamTimestampKey_ = "-ts"; // used for stream bookkeeping
 
   //Parses chirp text to find a hashtag
   //@param message: the body of the chirp
@@ -80,5 +83,5 @@ class ServiceLayerImpliment {
   //@param tag: the hashtag being used
   //@param time: the timestamp of the chirp was sent at
   //@param id: the id of the chirp that used the `tag`
-  void SetupTag(const std::string& tag, const std::string& time, const std::string& id);
+  void SetupTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store);
 };

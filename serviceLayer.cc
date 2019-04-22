@@ -122,10 +122,10 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
     
     std::vector<std::string> tags = ParseTag(chirp);
     for (int i = 0; i < tags.size(); i++) {
-      std::cout << tags.get(i) << std::endl;
+      std::cout << tags[i] << std::endl;
       std::string* ts = new std::string;
       newChirp.mutable_timestamp()->SerializeToString(ts);
-      SetupTag(tags.get(i), *ts, id);
+      SetupTag(tags[i], *ts, id, store);
     }
     
     store.Put_map(username, curr_chirp);
@@ -262,6 +262,23 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
   return tags;
 }
 
-void SetupTag(const std::string& tag, const std::string& time, const std::string& id) {
+void ServiceLayerImpliment::SetupTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store) {
   // TODO: implement
+  std::string key = tag + time;
+  StreamTimeData timestamps;
+  Timestamp ts;
+  ts.ParseFromString(time);
+
+  if (store.Contain_map(key)) {
+    timestamps.ParseFromString(store.Get_map(key));
+  }
+  Timestamp* add_ts = timestamps.add_timestamp();
+  add_ts->set_seconds(ts.seconds());
+  add_ts->set_useconds(ts.useconds());
+
+  std::string* ts_temp = new std::string();
+  timestamps.SerializeToString(ts_temp);
+  store.Put_map(tag + kStreamTimestampKey_, *ts_temp);
+  
+  store.Put_map(key, id);
 }
