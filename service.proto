@@ -77,12 +77,16 @@ message StreamReply {
   Chirp chirp = 1;
 }
 
-message StreamTimeData {
+message StreamTimes {
   repeated string timestamp = 1;
 }
 
 message StreamEntries {
-  repeated bytes chrip_id = 1;
+  repeated StreamData streamdata = 1;
+}
+message StreamData {
+  bytes chirp_id = 1;
+  Timestamp timestamp = 2;
 }
 
 service ServiceLayer {

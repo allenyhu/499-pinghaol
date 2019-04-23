@@ -263,27 +263,52 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
 }
 
 void ServiceLayerImpliment::AddTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store) {
-  StreamTimeData timestamps;
- 
+  StreamTimes timestamps;
+  StreamEntries stream_info; 
+  Timestamp curr_time;
+  curr_time.ParseFromStream(time);
+
   std::string ts_key = tag + kStreamTimestampKey_; 
+  std::string entry_key;
+  // Get existing info if already exists in store
   if (store.Contain_map(ts_key)) {
     timestamps.ParseFromString(store.Get_map(ts_key));
+    std::string latest_ts = timestamps.timestamp(timestamps.timestamp_size() - 1);
+    entry_key = tag + "-" + latest_ts;
+    std::string chirps_str = store.Get_map(entry_key); 
+    stream_info.ParseFromString(chirps_str);
+  } else {
+    entry_key = tag + "-" + time;
   }
-  // TODO: logic needs to be rewriteen for 1st entry 
-  std::string latest_ts = timestamps.timestamp(timestamps.timestamp_size() - 1);
-  std::string entry_key = tag + "-" + latest_ts;
-  std::string chirps = store.Get_map(entry_key); 
-   
-  if (timestamps.timestamp_size() < kStreamTimestampSize_) {
-    Timestamp* add_ts = timestamps.add_timestamp();
-    add_ts->set_seconds(ts.seconds());
-    add_ts->set_useconds(ts.useconds());
-
-  std::string* ts_temp = new std::string();
-  timestamps.SerializeToString(ts_temp);
-  store.Put_map(tag + kStreamTimestampKey_, *ts_temp);
   
-  store.Put_map(key, id);
+  if (stream_info.streamdata_size() < kStreamTimestampSize_) {
+    // Add data to current entry
+    StreamData* temp_data = stream_info.add_streamdata();
+    temp_data->set_chirp_id(id);
+    temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
+    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds()); 
 
-  delete ts_temp;
+    std::string* stream_info_str = new std::string();
+    stream_info.SerializeToString(stream_info_str);
+    store.Put_map(entry_key, *stream_info_str);
+    delete stream_info_str;
+  } else {
+    StreamEntries new_entries;
+    StreamData* temp_data = new_entries.add_streamdata();
+    temp_data->set_chirp_id(id);
+    temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
+    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
+
+    entry_key = tag + "-" + time; 
+    std::string* new_entries_str = new std::string();
+    new_entries_str.SerializeToString(new_entries_str);
+    store.Put_map(entry_key, *new_entries_str);
+    delete new_entries_str;
+
+    timestamps.add_timestamp(time);
+    std::string* timestamps_str = new std::string();
+    timestamps.SerializeToString(timestamps_str);
+    store.Put_map(ts_key, *timestamps_str);
+    delete timestamps_str;
+  }
 }
