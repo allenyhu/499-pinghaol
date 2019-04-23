@@ -282,6 +282,12 @@ void ServiceLayerImpliment::AddTag(const std::string& tag, const std::string& ti
     // First chirp with `tag`
     // `time` will be the "latest" timestamp
     entry_key = tag + "-" + time;
+    timestamps.add_timestamp(time);
+
+    std::string* timestamps_str = new std::string();
+    timestamps.SerializeToString(timestamps_str);
+    store.Put_map(ts_key, *timestamps_str);
+    delete timestamps_str;
   }
   
   if (stream_info.streamdata_size() < kStreamTimestampSize_) {

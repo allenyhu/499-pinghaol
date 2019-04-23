@@ -346,6 +346,21 @@ TEST(ServiceTest, StreamRegisteredUser) {
   ASSERT_NE(0, chirps.size()); // chirps not empty
 }
 
+// Tests bookkeeping entries for stream
+TEST(ServiceTest, TagEntryBase) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  
+  service.registeruser("user", store);
+  service.chirp("user", "test #test", "", store);
+
+  ASSERT_TRUE(store.Contain_map("#test-ts"));
+
+  StreamTimes times;
+  times.ParseFromString(store.Get_map("#test-ts"));
+  ASSERT_EQ(1, times.timestamp_size());
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
