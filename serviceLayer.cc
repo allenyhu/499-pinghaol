@@ -229,13 +229,63 @@ std::vector<std::string> ServiceLayerImpliment::monitor(std::string user1,
 
 std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
                                                        const std::string& hashtag,
+						       const std::string& time,
 						       KeyValueMap& store) {
   int check_user = store.Contain_map(user);
   if (!check_user) {
+    return std::vector<std::string>(); // TODO: change this with login error message
+  }
+  
+  if (!store.Contain_map(hashtag + kStreamTimestampKey_)) {
+    // No chirp with `hashtag` has been made yet
     return std::vector<std::string>();
   }
-  std::vector<std::string> chirps;
+
+  std::vector<std::string> chirps = GetStreamChirps(hashtag, time, store);
   chirps.push_back("test"); // TODO: implement stream functionality
+
+  return chirps;
+}
+
+std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::string& hashtag,
+                                                                const std::string& time,
+								KeyValueMap& store) {
+  
+  Timestamp curr_ts;
+  curr_ts.ParseFromString(time);
+  StreamTimes times;
+  times.ParseFromString(store.Get_map(hashtag + kStreamTimestampKey_));
+  Timestamp latest_ts;
+  std::string latest_ts_str = times.timestamp(times.timestamp_size() - 1);
+  latest_ts.ParseFromString(latest_ts_str);
+
+  if (latest_ts.seconds() <= curr_ts.seconds() && latest_ts.useconds() <= curr_ts.useconds()) {
+    // Potentially in latest time entry
+    std::string entries_str = store.Get_map(hashtag + "-" + latest_ts_str);
+    return ParseStreamEntries(entries_str, time);
+  }
+}
+
+std::vector<std::string> ParseStreamEntries(const std::string& entries_str, const std::string& time_str) {
+  std::vector<std::string> chirps;
+
+  StreamEntries entries;
+  entries.ParseFromString(entries_str);
+  Timestamp ts;
+  ts.ParseFromString(time_str);
+
+  // Move from most to least recent chirp
+  for (int i = entries.streamdata_size() - 1; i >= 0; i--) {
+    StreamData data = entries.streamdata(i);
+    Timestamp data_ts = data.timestamp();
+
+    if (ts.seconds() <= data_ts.seconds() && ts.useconds() <= data_ts.useconds()) {
+      std::string chirp = store.Get_map(data.chirp_id()); 
+      chirps.insert(0, chirp); // Maintain chronological order
+    } else {
+      break; // All following chirps will be older than `time_str`
+    }
+  }
 
   return chirps;
 }
@@ -262,26 +312,26 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
   return tags;
 }
 
-void ServiceLayerImpliment::AddTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store) {
+void ServiceLayerImpliment::AddTag(const std::string& hashtag, const std::string& time, const std::string& id, KeyValueMap& store) {
   StreamTimes timestamps;
   StreamEntries stream_info; 
   Timestamp curr_time;
   curr_time.ParseFromString(time);
 
-  std::string ts_key = tag + kStreamTimestampKey_; 
+  std::string ts_key = hashtag + kStreamTimestampKey_; 
   std::string entry_key;
 
   // Get existing info if already exists in store
   if (store.Contain_map(ts_key)) {
     timestamps.ParseFromString(store.Get_map(ts_key));
     std::string latest_ts = timestamps.timestamp(timestamps.timestamp_size() - 1);
-    entry_key = tag + "-" + latest_ts;
+    entry_key = hashtag + "-" + latest_ts;
     std::string streams_str = store.Get_map(entry_key); 
     stream_info.ParseFromString(streams_str);
   } else {
     // First chirp with `tag`
     // `time` will be the "latest" timestamp
-    entry_key = tag + "-" + time;
+    entry_key = hashtag + "-" + time;
     timestamps.add_timestamp(time);
 
     std::string* timestamps_str = new std::string();
@@ -310,7 +360,7 @@ void ServiceLayerImpliment::AddTag(const std::string& tag, const std::string& ti
     temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
     temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
 
-    entry_key = tag + "-" + time; // New entry will be in `time` bracket 
+    entry_key = hashtag + "-" + time; // New entry will be in `time` bracket 
     std::string* new_entries_str = new std::string();
     new_entries.SerializeToString(new_entries_str);
     store.Put_map(entry_key, *new_entries_str);
