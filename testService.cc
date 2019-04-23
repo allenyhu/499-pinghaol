@@ -336,6 +336,7 @@ TEST(ServiceTest, StreamUnregisteredUser) {
   ASSERT_EQ(0, chirps.size());
 }
 
+// Tests stream when user is registered
 TEST(ServiceTest, StreamRegisteredUser) {
   KeyValueMap store;
   ServiceLayerImpliment service;
