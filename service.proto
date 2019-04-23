@@ -77,6 +77,18 @@ message StreamReply {
   Chirp chirp = 1;
 }
 
+message StreamTimes {
+  repeated bytes timestamp = 1;
+}
+
+message StreamEntries {
+  repeated StreamData streamdata = 1;
+}
+message StreamData {
+  bytes chirp_id = 1;
+  Timestamp timestamp = 2;
+}
+
 service ServiceLayer {
   rpc registeruser (RegisterRequest) returns (RegisterReply) {}
   rpc chirp (ChirpRequest) returns (ChirpReply) {}
