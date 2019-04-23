@@ -6,6 +6,7 @@
 #include <queue>
 #include <random>
 #include <string>
+#include <sys/time.h>
 #include <thread>
 #include <vector>
 
@@ -72,6 +73,10 @@ class ServiceLayerImpliment {
   // @param store: instance of KeyValueMap
   // @ret: vector of chirps with those hashtags
   std::vector<std::string> stream(const std::string& user, const std::string& hashtag, const std::string& time, KeyValueMap& store);
+
+  // Utility method to make serialized Timestamp string for current time
+  // @param ts_str: string reference for the Timestamp to be serialized to
+  void MakeTimestamp(std::string* ts_str) ;
 
  private:
   int counter = 0;

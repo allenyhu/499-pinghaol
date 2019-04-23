@@ -331,8 +331,11 @@ TEST(ServiceTest, MultipleMonitorCheckChirpSequence2) {
 TEST(ServiceTest, StreamUnregisteredUser) {
   KeyValueMap store;
   ServiceLayerImpliment service;
+  
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
 
-  std::vector<std::string> chirps = service.stream("user", "tag", store);
+  std::vector<std::string> chirps = service.stream("user", "tag", ts_str, store);
   ASSERT_EQ(0, chirps.size());
 }
 
@@ -342,7 +345,10 @@ TEST(ServiceTest, StreamRegisteredUser) {
   ServiceLayerImpliment service;
   
   service.registeruser("user", store);
-  std::vector<std::string> chirps = service.stream("user", "tag", store);
+
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
+  std::vector<std::string> chirps = service.stream("user", "tag", ts_str, store);
   ASSERT_NE(0, chirps.size()); // chirps not empty
 }
 
