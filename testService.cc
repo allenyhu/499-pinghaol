@@ -359,6 +359,56 @@ TEST(ServiceTest, TagEntryBase) {
   StreamTimes times;
   times.ParseFromString(store.Get_map("#test-ts"));
   ASSERT_EQ(1, times.timestamp_size());
+
+  std::string key = "#test-" + times.timestamp(0);
+  StreamEntries entries;
+  entries.ParseFromString(store.Get_map(key));
+  ASSERT_EQ(1, entries.streamdata_size());
+}
+
+// Tests bookeeping entries for stream 
+// Multiple chirps, single user
+TEST(ServiceTest, TagEntryMultiChirpOneTag) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+
+  service.registeruser("user", store);
+  service.chirp("user", "test #test", "", store);
+  service.chirp("user", "test2 #test", "", store);
+
+  ASSERT_TRUE(store.Contain_map("#test-ts"));
+
+  StreamTimes times;
+  times.ParseFromString(store.Get_map("#test-ts"));
+  ASSERT_EQ(1, times.timestamp_size());
+
+  std::string key = "#test-" + times.timestamp(0);
+  StreamEntries entries;
+  entries.ParseFromString(store.Get_map(key));
+  ASSERT_EQ(2, entries.streamdata_size());
+}
+
+// Tests bookkeeping entries for stream
+// Multiple chirps, multiple users
+TEST(ServiceTest, TagEntryMultiChirpOneTagMultiUser) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+
+  service.registeruser("user", store);
+  service.registeruser("user2", store);
+
+  service.chirp("user", "test #test", "", store);
+  service.chirp("user2", "test2 #test", "", store);
+
+  StreamTimes times;
+  times.ParseFromString(store.Get_map("#test-ts"));
+  ASSERT_EQ(1, times.timestamp_size());
+
+  std::string key = "#test-" + times.timestamp(0);
+  StreamEntries entries;
+  entries.ParseFromString(store.Get_map(key));
+  ASSERT_EQ(2, entries.streamdata_size());
+
 }
 
 int main(int argc, char **argv) {
