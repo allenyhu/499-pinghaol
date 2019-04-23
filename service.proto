@@ -78,7 +78,11 @@ message StreamReply {
 }
 
 message StreamTimeData {
-  repeated Timestamp timestamp = 1;
+  repeated string timestamp = 1;
+}
+
+message StreamEntries {
+  repeated bytes chrip_id = 1;
 }
 
 service ServiceLayer {

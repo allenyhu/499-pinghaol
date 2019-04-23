@@ -125,7 +125,7 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
       std::cout << tags[i] << std::endl;
       std::string* ts = new std::string;
       newChirp.mutable_timestamp()->SerializeToString(ts);
-      SetupTag(tags[i], *ts, id, store);
+      AddTag(tags[i], *ts, id, store);
     }
     
     store.Put_map(username, curr_chirp);
@@ -262,23 +262,28 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
   return tags;
 }
 
-void ServiceLayerImpliment::SetupTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store) {
-  // TODO: implement
-  std::string key = tag + time;
+void ServiceLayerImpliment::AddTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store) {
   StreamTimeData timestamps;
-  Timestamp ts;
-  ts.ParseFromString(time);
-
-  if (store.Contain_map(key)) {
-    timestamps.ParseFromString(store.Get_map(key));
+ 
+  std::string ts_key = tag + kStreamTimestampKey_; 
+  if (store.Contain_map(ts_key)) {
+    timestamps.ParseFromString(store.Get_map(ts_key));
   }
-  Timestamp* add_ts = timestamps.add_timestamp();
-  add_ts->set_seconds(ts.seconds());
-  add_ts->set_useconds(ts.useconds());
+  // TODO: logic needs to be rewriteen for 1st entry 
+  std::string latest_ts = timestamps.timestamp(timestamps.timestamp_size() - 1);
+  std::string entry_key = tag + "-" + latest_ts;
+  std::string chirps = store.Get_map(entry_key); 
+   
+  if (timestamps.timestamp_size() < kStreamTimestampSize_) {
+    Timestamp* add_ts = timestamps.add_timestamp();
+    add_ts->set_seconds(ts.seconds());
+    add_ts->set_useconds(ts.useconds());
 
   std::string* ts_temp = new std::string();
   timestamps.SerializeToString(ts_temp);
   store.Put_map(tag + kStreamTimestampKey_, *ts_temp);
   
   store.Put_map(key, id);
+
+  delete ts_temp;
 }
