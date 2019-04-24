@@ -365,13 +365,14 @@ Status ServiceLayerImpl::stream(ServerContext* context,
   if (!store.contain(username)) {
     return Status::CANCELLED;
   }
-
   
   std::vector<std::string> chirp_strs;
   StreamReply reply;
   while (true) {
-    chirp_strs = GetStreamChirps(request->hashtag(), ts);
-    MakeTimestamp(&ts); // Update timestamp for next itreation
+    if (store.contain(request->hashtag() + kStreamTimestampKey_)) {
+      chirp_strs = GetStreamChirps(request->hashtag(), ts);
+      MakeTimestamp(&ts); // Update timestamp for next iteration
+    }
 
     for (const std::string& chirp_str : chirp_strs) {
       Chirp chirp;
@@ -401,11 +402,6 @@ Status ServiceLayerImpl::stream(ServerContext* context,
 
 std::vector<std::string> ServiceLayerImpl::GetStreamChirps(
     const std::string& hashtag, const std::string& time_str) {
-  if (!store.contain(hashtag + kStreamTimestampKey_)) {
-    // No chirps with `hashtag` yet
-    return std::vector<std::string>(); 
-  }
-
   std::vector<std::string> chirps;
 
   Timestamp curr_ts;
@@ -430,8 +426,12 @@ std::vector<std::string> ServiceLayerImpl::GetStreamChirps(
     // ParsingStreamEntries on older entry because of possibility an entry in
     // bracket is after curr_time break to not check other older entries (only
     // wnat 1st instance)
-    if (!(curr_ts.seconds() <= latest_ts.seconds() && 
-          curr_ts.useconds() <= latest_ts.useconds())) {
+    //
+    // !(curr_ts seconds less than latest_ts seconds OR 
+    // (curr_ts seconds equal AND curr_ts useconds smaller than latest_ts useconds))
+    // to be more recent than latest_ts
+    if (!((curr_ts.seconds() < latest_ts.seconds()) ||
+         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() < latest_ts.useconds())))) {
       break;
     }
   }
@@ -452,11 +452,14 @@ std::vector<std::string> ServiceLayerImpl::ParseStreamEntries(
   for (int i = entries.streamdata_size() - 1; i >= 0; i--) {
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
-
-    if (ts.seconds() <= data_ts.seconds() && 
-        ts.useconds() <= data_ts.useconds()) {
+    
+    // ts seconds smaller than data_ts seconds OR 
+    // (ts seconds equals AND ts useconds smaller than data_ts useconds)
+    // to be older than data_ts
+    if ((ts.seconds() < data_ts.seconds()) || 
+        ((ts.seconds() == data_ts.seconds()) && (ts.useconds() <= data_ts.useconds()))) {
       std::string chirp = store.get(data.chirp_id());
-      chirps.insert(chirps.begin(), chirp); // Maintain chronological order
+      chirps.insert(chirps.begin(), chirp);
     } else {
       break; // All following chirps will be older than `time_str`, don't want
              // to interate
