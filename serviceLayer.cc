@@ -122,9 +122,9 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
 
     std::vector<std::string> tags = ParseTag(chirp);
     for (int i = 0; i < tags.size(); i++) {
-      std::string* ts = new std::string;
-      newChirp.mutable_timestamp()->SerializeToString(ts);
-      AddTag(tags[i], *ts, id, store);
+      std::string ts;
+      newChirp.mutable_timestamp()->SerializeToString(&ts);
+      AddTag(tags[i], ts, id, store);
     }
 
     store.Put_map(username, curr_chirp);
@@ -355,24 +355,21 @@ void ServiceLayerImpliment::AddTag(const std::string& hashtag,
     entry_key = hashtag + "-" + time;
     timestamps.add_timestamp(time);
 
-    std::string* timestamps_str = new std::string();
-    timestamps.SerializeToString(timestamps_str);
-    store.Put_map(ts_key, *timestamps_str);
-    delete timestamps_str;
+    std::string timestamps_str;
+    timestamps.SerializeToString(&timestamps_str);
+    store.Put_map(ts_key, timestamps_str);
   }
 
   if (stream_info.streamdata_size() < kStreamTimestampSize_) {
-    // Add data to current steam info entry
+    // Add data to current stream info entry
     StreamData* temp_data = stream_info.add_streamdata();
     temp_data->set_chirp_id(id);
     temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
     temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
 
-    std::string* stream_info_str = new std::string();
-    stream_info.SerializeToString(stream_info_str);
-    store.Put_map(entry_key, *stream_info_str);
-
-    delete stream_info_str;
+    std::string stream_info_str;
+    stream_info.SerializeToString(&stream_info_str);
+    store.Put_map(entry_key, stream_info_str);
   } else {
     // Make new StreamEntries under new key
     StreamEntries new_entries;
@@ -382,18 +379,15 @@ void ServiceLayerImpliment::AddTag(const std::string& hashtag,
     temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
 
     entry_key = hashtag + "-" + time;  // New entry will be in `time` bracket
-    std::string* new_entries_str = new std::string();
-    new_entries.SerializeToString(new_entries_str);
-    store.Put_map(entry_key, *new_entries_str);
+    std::string new_entries_str; 
+    new_entries.SerializeToString(&new_entries_str);
+    store.Put_map(entry_key, new_entries_str);
 
     // Need to update timestamp key with new entry
     timestamps.add_timestamp(time);
-    std::string* timestamps_str = new std::string();
-    timestamps.SerializeToString(timestamps_str);
-    store.Put_map(ts_key, *timestamps_str);
-
-    delete new_entries_str;
-    delete timestamps_str;
+    std::string timestamps_str; 
+    timestamps.SerializeToString(&timestamps_str);
+    store.Put_map(ts_key, timestamps_str);
   }
 }
 

@@ -71,6 +71,23 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
  private:
   int counter = 0;
 
+  const std::string kStreamTimestampKey_ =
+      "-ts";  // Used for stream bookkeeping
+
+  const int kStreamTimestampSize_ =
+      15;  // Number of Timestamps stored in each bookkeeping entry
+  // Parses chirp text to find a hashtag
+  // @param message: the body of th echirp
+  // @ret: vector of all the tags that this chirp belongs to
+  std::vector<std::string> ParseTag(const std::string& message);
+
+  // Sets up all Stream bookkeeping info in store
+  // @param hashtag: the hashtag being used
+  // @param time: the timestamp of the chirp 
+  // @param id: the id of the chirp that used the `tag`
+  void AddTag(const std::string& hashtag, const std::string& time,
+              const std::string& id);
+
   // Unitility method to make serialized Timestamp string for current time
   // @param ts_str: string pointer for the Timestamp to be serialized to
   void MakeTimestamp(std::string* ts_str);

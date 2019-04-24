@@ -86,7 +86,7 @@ class ServiceLayerImpliment {
   const std::string kStreamTimestampKey_ =
       "-ts";  // Used for stream bookkeeping
 
-  int kStreamTimestampSize_ =
+  const int kStreamTimestampSize_ =
       15;  // Number of Timestamps stored in each bookkeeping entry
 
   // Parses chirp text to find a hashtag
@@ -97,8 +97,8 @@ class ServiceLayerImpliment {
   // Sets up all Stream bookkeeping info in store
   // @param hashtag: the hashtag being used
   // @param time: the timestamp of the chirp was sent at
-  // @param store: instance of KeyValueMap
   // @param id: the id of the chirp that used the `tag`
+  // @param store: instance of KeyValueMap
   void AddTag(const std::string& hashtag, const std::string& time,
               const std::string& id, KeyValueMap& store);
 
