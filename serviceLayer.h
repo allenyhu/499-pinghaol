@@ -96,21 +96,21 @@ class ServiceLayerImpliment {
 
   // Sets up all Stream bookkeeping info in store
   // @param hashtag: the hashtag being used
-  // @param time: the timestamp of the chirp was sent at
+  // @param time_str: the timestamp of the chirp was sent at
   // @param id: the id of the chirp that used the `tag`
   // @param store: instance of KeyValueMap
-  void AddTag(const std::string& hashtag, const std::string& time,
+  void AddTag(const std::string& hashtag, const std::string& time_str,
               const std::string& id, KeyValueMap& store);
 
   // Helper method to stream(). Checks StreamData for timestamps and collects
   // newer chirps with `tag`
   // @param hashtag: the hashtag being used
-  // @param time: the timestamp to be checked against
+  // @param time_str: the timestamp to be checked against
   // @param store: instance of KeyValueMap
   // @ret: vector of chirps with `hashtag` that have been made since last stream
   // request
   std::vector<std::string> GetStreamChirps(const std::string& hashtag,
-                                           const std::string& time,
+                                           const std::string& time_str,
                                            KeyValueMap& store);
 
   // Helper method to GetStreamChirps(). Checks StreamEntries that are after

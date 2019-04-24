@@ -1,4 +1,5 @@
 #include <sys/time.h>
+#include <unistd.h>
 #include <chrono>
 #include <ctime>
 #include <iostream>
@@ -36,6 +37,8 @@ using chirp::ServiceLayer;
 using chirp::StreamData;
 using chirp::StreamEntries;
 using chirp::StreamTimes;
+using chirp::StreamReply;
+using chirp::StreamRequest;
 using chirp::Timestamp;
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -68,14 +71,23 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
   Status monitor(ServerContext* context, const MonitorRequest* request,
                  ServerWriter<MonitorReply>* writer) override;
 
+  // Process StreamRequests from the client
+  // Writes back to streamed StreamReplys
+  Status stream(ServerContext* context, const StreamRequest* request,
+                ServerWriter<StreamReply>* writer) override;
+
  private:
   int counter = 0;
 
-  const std::string kStreamTimestampKey_ =
-      "-ts";  // Used for stream bookkeeping
+  // Used for stream bookkeeping
+  const std::string kStreamTimestampKey_ = "-ts"; 
 
-  const int kStreamTimestampSize_ =
-      15;  // Number of Timestamps stored in each bookkeeping entry
+  // Number of Timestamps stored in each bookkeeping entry
+  const int kStreamTimestampSize_ = 15; 
+
+  // Loop delay for stream()
+  const int kStreamLoopDelay_ = 500000;
+
   // Parses chirp text to find a hashtag
   // @param message: the body of th echirp
   // @ret: vector of all the tags that this chirp belongs to
@@ -87,8 +99,26 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
   // @param id: the id of the chirp that used the `tag`
   void AddTag(const std::string& hashtag, const std::string& time,
               const std::string& id);
+  
+  // Helper method to stream(). Checks StreamData for timestamps and collects
+  // newer chirps with `tag`
+  // @param hashtag: the hashtag being used
+  // @param time_str: the timestamp to be checked against
+  // @ret: vector of chirps with `hashtag` that have been made since last stream
+  // request
+  std::vector<std::string> GetStreamChirps(const std::string& hashtag,
+                                           const std::string& time_str);
 
-  // Unitility method to make serialized Timestamp string for current time
+  // Helper method to GetStreamChirps(). Checks StreamEntries that are after
+  // `time_str`
+  // @param entries_str: serialized string of StreamEntries to be checked
+  // against
+  // @param time_str: serialized string of timestamp chirps must come after
+  // @ret: vector of chirps in `entries_str` that were made after `time_str`
+  std::vector<std::string> ParseStreamEntries(const std::string& entries_str,
+                                              const std::string& time_str);
+  
+  // Utility method to make serialized Timestamp string for current time
   // @param ts_str: string pointer for the Timestamp to be serialized to
   void MakeTimestamp(std::string* ts_str);
 };

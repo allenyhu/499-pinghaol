@@ -244,11 +244,11 @@ std::vector<std::string> ServiceLayerImpliment::stream(
 }
 
 std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
-    const std::string& hashtag, const std::string& time, KeyValueMap& store) {
+    const std::string& hashtag, const std::string& time_str, KeyValueMap& store) {
   std::vector<std::string> chirps;
 
   Timestamp curr_ts;
-  curr_ts.ParseFromString(time);
+  curr_ts.ParseFromString(time_str);
   StreamTimes times;
   times.ParseFromString(store.Get_map(hashtag + kStreamTimestampKey_));
 
@@ -259,7 +259,7 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
     latest_ts_str = times.timestamp(i);
     latest_ts.ParseFromString(latest_ts_str);
     std::string entries_str = store.Get_map(hashtag + "-" + latest_ts_str);
-    auto curr_chirps = ParseStreamEntries(entries_str, time, store);
+    auto curr_chirps = ParseStreamEntries(entries_str, time_str, store);
 
     // appending to front of chirps
     chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end());
