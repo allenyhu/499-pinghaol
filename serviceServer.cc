@@ -143,7 +143,8 @@ Status ServiceLayerImpl::chirp(ServerContext* context,
     store.put(id, *output1);
     string curr_chirp = store.get(username);
     curr_chirp += id;
-    
+   
+    // Stream bookkeeping setup 
     std::vector<std::string> tags = ParseTag(newChirp.text());
     for (int i = 0; i < tags.size(); i++) {
       std::string ts;
@@ -207,13 +208,10 @@ std::vector<std::string> ServiceLayerImpl::ParseTag(
 }
 
 void ServiceLayerImpl::AddTag(const std::string& hashtag,
-                              const std::string& time,
+                              const std::string& time_str,
 			      const std::string& id) {
   StreamTimes timestamps;
   StreamEntries stream_info;
-  Timestamp curr_time;
-  curr_time.ParseFromString(time);
-
   std::string ts_key = hashtag + kStreamTimestampKey_;
   std::string entry_key;
 
@@ -227,43 +225,47 @@ void ServiceLayerImpl::AddTag(const std::string& hashtag,
   } else {
     // First chirp with `hashtag`
     // `time` will be the "latest" timestamp
-    entry_key = hashtag + "-" + time;
-    timestamps.add_timestamp(time);
+    entry_key = hashtag + "-" + time_str;
+    timestamps.add_timestamp(time_str);
+
     std::string timestamps_str;
     timestamps.SerializeToString(&timestamps_str);
     store.put(ts_key, timestamps_str);
   }
 
   if (stream_info.streamdata_size() < kStreamTimestampSize_) {
-    // Add data to current stream info entry
-    StreamData* temp_data = stream_info.add_streamdata();
-    temp_data->set_chirp_id(id);
-    temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
-    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
-
-    std::string stream_info_str;
-    stream_info.SerializeToString(&stream_info_str);
-    store.put(entry_key, stream_info_str);
+    AddStreamEntry(&stream_info, id, time_str, entry_key);
   } else {
     // Make new StreamEntries under new key
     StreamEntries new_entries;
-    StreamData* temp_data = new_entries.add_streamdata();
-    temp_data->set_chirp_id(id);
-    temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
-    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
-
-    entry_key = hashtag + "-" + time;
-    std::string new_entries_str;
-    new_entries.SerializeToString(&new_entries_str);
-    store.put(entry_key, new_entries_str);
+    entry_key = hashtag + "-" + time_str;
+    AddStreamEntry(&new_entries, id, time_str, entry_key);
 
     // Need to update timestamp key with new entry
-    timestamps.add_timestamp(time);
+    timestamps.add_timestamp(time_str);
     std::string timestamps_str;
     timestamps.SerializeToString(&timestamps_str);
     store.put(ts_key, timestamps_str);
   }
 }
+
+void ServiceLayerImpl::AddStreamEntry(StreamEntries* stream_info,
+                                      const std::string& id,
+				      const std::string& time_str,
+				      std::string key) {
+  Timestamp time;
+  time.ParseFromString(time_str);
+
+  StreamData* data = stream_info->add_streamdata();
+  data->set_chirp_id(id);
+  data->mutable_timestamp()->set_seconds(time.seconds());
+  data->mutable_timestamp()-> set_useconds(time.useconds());
+
+  std::string stream_info_str;
+  stream_info->SerializeToString(&stream_info_str);
+  store.put(key, stream_info_str);
+}
+
 // Reading a chirp
 Status ServiceLayerImpl::read(ServerContext* context,
                               const ReadRequest* request, ReadReply* reply) {
@@ -465,9 +467,9 @@ std::vector<std::string> ServiceLayerImpl::ParseStreamEntries(
              // to interate
     }
   }
-
   return chirps;
 }
+
 void ServiceLayerImpl::MakeTimestamp(std::string* ts_str) {
   Timestamp ts;
   timeval t;
