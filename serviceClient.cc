@@ -129,8 +129,26 @@ void ServiceLayerClient::monitor(std::string username) {
 }
 
 void ServiceLayerClient::stream(std::string username, std::string hashtag) {
-  // TODO: add stream implementation after testing in non-grpc ServiceLayer
+  StreamRequest request;
+  ClientContext context;
+  StreamReply reply;
+
+  request.set_username(username);
+  request.set_hashtag(hashtag);
+
+  std::unique_ptr<ClientReader<StreamReply> > reader(stub_->stream(&context, request));
+	
   std::cout << username << " streaming: " << hashtag << std::endl;
+  while (reader->Read(&reply)) {
+    std::cout << reply.chirp().username() << " at time "  << reply.chirp().timestamp().seconds() << " : " 
+	    << reply.chirp().text() << std::endl;
+  }
+  Status status = reader->Finish();
+  if (status.ok()) {
+    std::cout << "Stream rpc succeeded." << std::endl;
+  } else {
+    std::cout << "Stream rpc failed." << std::endl;
+  }
 }
 
 
