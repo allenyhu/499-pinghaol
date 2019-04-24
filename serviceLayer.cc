@@ -119,7 +119,7 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
     store.Put_map(id, *output1);
     std::string curr_chirp = store.Get_map(username);
     curr_chirp += id;
-    
+
     // Setup Stream bookkeeping
     std::vector<std::string> tags = ParseTag(chirp);
     for (int i = 0; i < tags.size(); i++) {
@@ -245,7 +245,8 @@ std::vector<std::string> ServiceLayerImpliment::stream(
 }
 
 std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
-    const std::string& hashtag, const std::string& time_str, KeyValueMap& store) {
+    const std::string& hashtag, const std::string& time_str,
+    KeyValueMap& store) {
   std::vector<std::string> chirps;
 
   Timestamp curr_ts;
@@ -271,7 +272,8 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
     // bracket is after curr_time break to not check other older entries (only
     // wnat 1st instance)
     if (!((curr_ts.seconds() < latest_ts.seconds()) ||
-         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() <= latest_ts.useconds())))) {
+          ((curr_ts.seconds() == latest_ts.seconds()) &&
+           (curr_ts.useconds() <= latest_ts.useconds())))) {
       break;
     }
   }
@@ -293,9 +295,10 @@ std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(
   for (int i = entries.streamdata_size() - 1; i >= 0; i--) {
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
-    
+
     if ((ts.seconds() < data_ts.seconds()) ||
-        ((ts.seconds() == data_ts.seconds()) && (ts.useconds() <= data_ts.useconds()))) { 
+        ((ts.seconds() == data_ts.seconds()) &&
+         (ts.useconds() <= data_ts.useconds()))) {
       std::string chirp = store.Get_map(data.chirp_id());
       chirps.insert(chirps.begin(), chirp);  // Maintain chronological order
     } else {
@@ -365,12 +368,13 @@ void ServiceLayerImpliment::AddTag(const std::string& hashtag,
   } else {
     // Make new StreamEntries under new key
     StreamEntries new_entries;
-    entry_key = hashtag + "-" + time_str;  // New entry will be in `time` bracket
+    entry_key =
+        hashtag + "-" + time_str;  // New entry will be in `time` bracket
     AddStreamEntry(&new_entries, id, time_str, entry_key, store);
 
     // Need to update timestamp key with new entry
     timestamps.add_timestamp(time_str);
-    std::string timestamps_str; 
+    std::string timestamps_str;
     timestamps.SerializeToString(&timestamps_str);
     store.Put_map(ts_key, timestamps_str);
   }
@@ -378,9 +382,9 @@ void ServiceLayerImpliment::AddTag(const std::string& hashtag,
 
 void ServiceLayerImpliment::AddStreamEntry(StreamEntries* stream_info,
                                            const std::string& id,
-					   const std::string& time_str,
-					   const std::string& key,
-					   KeyValueMap& store) {
+                                           const std::string& time_str,
+                                           const std::string& key,
+                                           KeyValueMap& store) {
   Timestamp time;
   time.ParseFromString(time_str);
 

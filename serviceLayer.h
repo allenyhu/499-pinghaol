@@ -107,10 +107,10 @@ class ServiceLayerImpliment {
   // @param id: chirp_id
   // @param time_str: serialized timestamp of chirp to be added
   // @param key: store key to update bookkeeping data to
-  // @param store: instance of KeyValueMap 
+  // @param store: instance of KeyValueMap
   void AddStreamEntry(StreamEntries* stream_info, const std::string& id,
                       const std::string& time_str, const std::string& key,
-		      KeyValueMap& store);
+                      KeyValueMap& store);
 
   // Helper method to stream(). Checks StreamData for timestamps and collects
   // newer chirps with `tag`

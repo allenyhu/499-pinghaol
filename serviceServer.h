@@ -36,9 +36,9 @@ using chirp::Reply;
 using chirp::ServiceLayer;
 using chirp::StreamData;
 using chirp::StreamEntries;
-using chirp::StreamTimes;
 using chirp::StreamReply;
 using chirp::StreamRequest;
+using chirp::StreamTimes;
 using chirp::Timestamp;
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -80,10 +80,10 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
   int counter = 0;
 
   // Used for stream bookkeeping
-  const std::string kStreamTimestampKey_ = "-ts"; 
+  const std::string kStreamTimestampKey_ = "-ts";
 
   // Number of Timestamps stored in each bookkeeping entry
-  const int kStreamTimestampSize_ = 15; 
+  const int kStreamTimestampSize_ = 15;
 
   // Loop delay for stream()
   const int kStreamLoopDelay_ = 500000;
@@ -95,7 +95,7 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
 
   // Sets up all Stream bookkeeping info in store
   // @param hashtag: the hashtag being used
-  // @param time_str: the timestamp of the chirp 
+  // @param time_str: the timestamp of the chirp
   // @param id: the id of the chirp that used the `tag`
   void AddTag(const std::string& hashtag, const std::string& timei_str,
               const std::string& id);
@@ -106,7 +106,7 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
   // @param time_str: serialized timestamp of chirp to be added
   // @param key: store key to update bookkeeping data to
   void AddStreamEntry(StreamEntries* stream_info, const std::string& id,
-                      const std::string& time_str, std::string key);  
+                      const std::string& time_str, std::string key);
 
   // Helper method to stream(). Checks StreamData for timestamps and collects
   // newer chirps with `tag`
@@ -125,7 +125,7 @@ class ServiceLayerImpl final : public ServiceLayer::Service {
   // @ret: vector of chirps in `entries_str` that were made after `time_str`
   std::vector<std::string> ParseStreamEntries(const std::string& entries_str,
                                               const std::string& time_str);
-  
+
   // Utility method to make serialized Timestamp string for current time
   // @param ts_str: string pointer for the Timestamp to be serialized to
   void MakeTimestamp(std::string* ts_str);
