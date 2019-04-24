@@ -327,31 +327,6 @@ TEST(ServiceTest, MultipleMonitorCheckChirpSequence2) {
   	EXPECT_EQ(chirps[2], v[2]);
 }
 
-//Tests stream when user isn't registered 
-TEST(ServiceTest, StreamUnregisteredUser) {
-  KeyValueMap store;
-  ServiceLayerImpliment service;
-  
-  std::string ts_str;
-  service.MakeTimestamp(&ts_str);
-
-  std::vector<std::string> chirps = service.stream("user", "tag", ts_str, store);
-  ASSERT_EQ(0, chirps.size());
-}
-
-// Tests stream when user is registered
-TEST(ServiceTest, StreamRegisteredUser) {
-  KeyValueMap store;
-  ServiceLayerImpliment service;
-  
-  service.registeruser("user", store);
-
-  std::string ts_str;
-  service.MakeTimestamp(&ts_str);
-  std::vector<std::string> chirps = service.stream("user", "tag", ts_str, store);
-  ASSERT_NE(0, chirps.size()); // chirps not empty
-}
-
 // Tests bookkeeping entries for stream
 TEST(ServiceTest, TagEntryBase) {
   KeyValueMap store;
@@ -516,13 +491,95 @@ TEST(ServiceStreamTest, StreamBase) {
   
   service.registeruser("user", store);
 
-  std::string ts;
-  service.MakeTimestamp(&ts);
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
 
   service.chirp("user", "test #test", "", store);
 
-  auto chirps = service.stream("user", "#test", ts, store);
+  auto chirps = service.stream("user", "#test", ts_str, store);
   ASSERT_EQ(1, chirps.size()); 
+}
+
+// Tests stream when user isn't registered 
+// Single user
+TEST(ServiceStreamTest, StreamUnregisteredUser) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  service.registeruser("user", store);
+
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
+  
+  service.chirp("user", "test #test", "", store);
+
+  std::vector<std::string> chirps = service.stream("no_user", "#test", ts_str, store);
+  ASSERT_EQ(0, chirps.size());
+}
+
+// Tests Stream functionality
+// Single user, single chirp, single tag
+TEST(ServiceStreamTest, StreamBaseMultiTag) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  service.registeruser("user", store);
+
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
+
+  service.chirp("user", "#tag #test", "", store);
+
+  auto chirps = service.stream("user", "#test", ts_str, store);
+  ASSERT_EQ(1, chirps.size());
+
+  chirps = service.stream("user", "#tag", ts_str, store);
+  ASSERT_EQ(1, chirps.size());
+}
+
+// Tests Stream functionality
+// Multiuser, single chirp, single tag
+TEST(ServiceStreamTest, StreamBaseMultiUser) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  service.registeruser("user", store);
+  service.registeruser("user2", store);
+  
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
+
+  service.chirp("user", "#tag", "", store);
+  
+  auto user_chirps = service.stream("user", "#tag", ts_str, store);
+  auto user2_chirps = service.stream("user2", "#tag", ts_str, store);
+  
+  ASSERT_EQ(1, user_chirps.size());
+  ASSERT_EQ(user_chirps.size(), user2_chirps.size()); 
+}
+
+// Tests Stream functionality
+// Test boundary case of time brackets
+TEST(ServiceStreamTest, BoundaryTime) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  service.registeruser("user", store);
+  int bracket_size = 15; // identical to kStreamTimestampSize_ from serviceLayer.h
+
+  for (int i = 0; i < bracket_size - 1; i++) {
+    std::string text = std::to_string(i) + " #tag";
+    service.chirp("user", text, "", store);
+  }
+
+  std::string ts_str;
+  service.MakeTimestamp(&ts_str);
+  
+  auto chirps = service.stream("user", "#tag", ts_str, store);
+  ASSERT_EQ(0, chirps.size());
+  for (int i = 0; i < bracket_size; i++) {
+    std::string text = std::to_string(i) + " #tag";
+    service.chirp("user", text, "", store); 
+  }
+
+  chirps = service.stream("user", "#tag", ts_str, store);
+  ASSERT_EQ(bracket_size, chirps.size());
 }
 
 int main(int argc, char **argv) {
