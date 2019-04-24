@@ -270,7 +270,7 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
     // bracket is after curr_time break to not check other older entries (only
     // wnat 1st instance)
     if (!((curr_ts.seconds() < latest_ts.seconds()) ||
-         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() < latest_ts.useconds())))) {
+         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() <= latest_ts.useconds())))) {
       break;
     }
   }

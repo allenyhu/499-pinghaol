@@ -431,7 +431,7 @@ std::vector<std::string> ServiceLayerImpl::GetStreamChirps(
     // (curr_ts seconds equal AND curr_ts useconds smaller than latest_ts useconds))
     // to be more recent than latest_ts
     if (!((curr_ts.seconds() < latest_ts.seconds()) ||
-         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() < latest_ts.useconds())))) {
+         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() <= latest_ts.useconds())))) {
       break;
     }
   }
