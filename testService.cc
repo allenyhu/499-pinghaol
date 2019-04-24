@@ -478,6 +478,63 @@ TEST(ServiceStreamTest, BoundaryTimeMultiuser) {
   ASSERT_EQ(bracket_size, chirps.size());
 }
 
+// Tests Stream functionality
+// Tests multiple streams at different times
+TEST(ServiceStreamTest, MultiStreamBase) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  service.registeruser("user", store);
+
+  std::string ts_str1;
+  service.MakeTimestamp(&ts_str1);
+
+  service.chirp("user", "test #tag", "", store);
+  auto chirps = service.stream("user", "#tag", ts_str1, store);
+  ASSERT_EQ(1, chirps.size());
+
+  std::string ts_str2;
+  service.MakeTimestamp(&ts_str2);
+  chirps = service.stream("user", "#tag", ts_str2, store);
+  ASSERT_EQ(0, chirps.size());
+
+  service.chirp("user", "test2 #tag", "", store);
+  chirps = service.stream("user", "#tag", ts_str2, store);
+  ASSERT_EQ(1, chirps.size());
+
+  // Check against old timestamp
+  chirps = service.stream("user", "#tag", ts_str1, store);
+  ASSERT_EQ(2, chirps.size());
+}
+
+// Tests Stream functionality
+// Tests multiple streams at different times across time boundaries
+TEST(ServiceStreamTest, MultiStreamTimeBoundary) {
+  int bracket_size = 15; // identical to kStreamTimestampSize_ from serviceLayer.h
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  service.registeruser("user", store);
+
+  std::string ts_str1;
+  service.MakeTimestamp(&ts_str1);
+
+  for (int i = 0; i < bracket_size - 1; i++) {
+    service.chirp("user", "#tag", "", store);
+  }
+
+  auto chirps = service.stream("user", "#tag", ts_str1, store);
+  ASSERT_EQ(bracket_size - 1, chirps.size());
+
+  std::string ts_str2;
+  service.MakeTimestamp(&ts_str2);
+
+  for (int i=0; i < bracket_size * 2; i++) {
+    service.chirp("user", "second #tag", "", store);
+  }
+
+  chirps = service.stream("user", "#tag", ts_str2, store);
+  ASSERT_EQ(bracket_size * 2, chirps.size());
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
