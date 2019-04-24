@@ -260,13 +260,15 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::strin
   Timestamp latest_ts;
   std::string latest_ts_str;
 
-  // This loop iterates through timestamp brackets of stream bookkeeping info in reverse chronological order
   for (int i = times.timestamp_size() - 1; i >= 0; i--) {
     latest_ts_str = times.timestamp(i);
     latest_ts.ParseFromString(latest_ts_str);
     std::string entries_str = store.Get_map(hashtag + "-" + latest_ts_str);
     auto curr_chirps = ParseStreamEntries(entries_str, time, store);
-    chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end()); // appending to front of chirps
+    
+    // appending to front of chirps
+    chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end()); 
+    
     // Due to reverse chron order, know that this if statement will be entered on 1st instance of latest_ts being older than curr_ts
     // Will only break after ParsingStreamEntries on 1st instance entry because of possibility an entry in bracket is after curr_time
     if (!(curr_ts.seconds() <= latest_ts.seconds() && curr_ts.useconds() <= latest_ts.useconds())) {
