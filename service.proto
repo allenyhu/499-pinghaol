@@ -71,6 +71,7 @@ message MonitorReply {
 
 message StreamRequest {
   string username = 1;
+  string hashtag = 2;
 }
 
 message StreamReply {

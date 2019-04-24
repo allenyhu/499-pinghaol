@@ -29,6 +29,8 @@ using chirp::FollowRequest;
 using chirp::FollowReply;
 using chirp::ReadRequest;
 using chirp::ReadReply;
+using chirp::StreamReply;
+using chirp::StreamRequest;
 using chirp::MonitorRequest;
 using chirp::MonitorReply;
 using namespace std;
