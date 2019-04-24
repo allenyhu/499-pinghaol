@@ -59,8 +59,6 @@ public:
     //Stream all chirps with `hashtag`
     void stream(std::string username, std::string hashtag);
 
-
-    
 private:
     std::unique_ptr<ServiceLayer::Stub> stub_;
 };

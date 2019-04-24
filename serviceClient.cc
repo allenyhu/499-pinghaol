@@ -143,6 +143,7 @@ void ServiceLayerClient::stream(std::string username, std::string hashtag) {
     std::cout << reply.chirp().username() << " at time "  << reply.chirp().timestamp().seconds() << " : " 
 	    << reply.chirp().text() << std::endl;
   }
+
   Status status = reader->Finish();
   if (status.ok()) {
     std::cout << "Stream rpc succeeded." << std::endl;
