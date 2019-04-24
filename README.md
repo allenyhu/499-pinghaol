@@ -1,49 +1,30 @@
-Pinghao Luo pinghaol
-    @usc.edu
+Pinghao Luo pinghaol@usc.edu
 
-#How to setup and compile ?
-        make
+#How to setup and compile ? make
 
 #How to run ?
 
-#keyValue:
-            ./
-    keyValueServer
+#keyValue: ./keyValueServer
 
-#serviceServer:
-        ./
-    serviceServer
+#serviceServer: ./serviceServer
 
 #serviceClient:
 
-#command:
-        ./
-    command-- register username1
+#command: ./command-- register username1
 
-#chirp without parent:
-        ./
-    command-- user username1-- chirp "chirp1"
+#chirp without parent: ./command-- user username1-- chirp "chirp1"
+    Return a message : Success, and chirp id is : chirp_id
 
-    Return a message : Success,
-    and chirp id is : chirp_id
+#chirp with ParentID: ./command-- user username1-- chirp "chirp1" --reply chirp_id
+    Return a message : Success, and chirp id is : chirp_id
 
-#chirp witht ParentID:
-                          ./
-        command-- user username1-- chirp "chirp1" --reply chirp_id
+#read: ./command-- read chirp_id
+    Return a message : Reading chirps posted by username1 : chirp1
 
-            Return a message : Success,
-    and chirp id is : chirp_id
+#follow: ./command-- user username1-- follow username2
 
-#read:
-                          ./
-        command-- read chirp_id
+#monitor: ./command-- user username1-- monitor
 
-            Return a message : Reading chirps posted by username1 : chirp1
-
-#follow:
-                                                                        ./
-        command-- user username1-- follow username2
-
-#monitor:
-            ./
-        command-- user username1-- monitor
+#stream: ./command --user <username> --stream <tag>
+    tag must be enclosed in " " and include the #
+    Ex: "#tag" is valid but "tag" is not
