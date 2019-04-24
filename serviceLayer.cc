@@ -271,9 +271,8 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
     // ParsingStreamEntries on older entry because of possibility an entry in
     // bracket is after curr_time break to not check other older entries (only
     // wnat 1st instance)
-    if (!((curr_ts.seconds() < latest_ts.seconds()) ||
-          ((curr_ts.seconds() == latest_ts.seconds()) &&
-           (curr_ts.useconds() <= latest_ts.useconds())))) {
+    bool curr_ts_older = (curr_ts.seconds() < latest_ts.seconds()) || ((curr_ts.seconds() == latest_ts.seconds()) && curr_ts.useconds() <= latest_ts.useconds());
+    if (!curr_ts_older) {
       break;
     }
   }
@@ -295,10 +294,8 @@ std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(
   for (int i = entries.streamdata_size() - 1; i >= 0; i--) {
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
-
-    if ((ts.seconds() < data_ts.seconds()) ||
-        ((ts.seconds() == data_ts.seconds()) &&
-         (ts.useconds() <= data_ts.useconds()))) {
+    bool ts_older = (ts.seconds() < data_ts.seconds()) || ((ts.seconds() == data_ts.seconds()) && ts.useconds() <= data_ts.useconds());
+    if (ts_older) {
       std::string chirp = store.Get_map(data.chirp_id());
       chirps.insert(chirps.begin(), chirp);  // Maintain chronological order
     } else {
