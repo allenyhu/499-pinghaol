@@ -147,7 +147,7 @@ void ServiceLayerClient::stream(std::string username, std::string hashtag) {
   if (status.ok()) {
     std::cout << "Stream rpc succeeded." << std::endl;
   } else {
-    std::cout << "Stream rpc failed. Please check user is registered" << std::endl;
+    std::cout << "Stream rpc ended. User terminated or please check user is registered" << std::endl;
   }
 }
 
