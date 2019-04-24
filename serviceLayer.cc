@@ -275,6 +275,8 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::strin
       break;
     }
   }
+
+  return chirps;
 }
 
 std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(const std::string& entries_str, const std::string& time_str, KeyValueMap& store) {
