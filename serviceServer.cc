@@ -143,7 +143,8 @@ Status ServiceLayerImpl::chirp(ServerContext* context,
     store.put(id, *output1);
     string curr_chirp = store.get(username);
     curr_chirp += id;
-    
+
+    // Stream bookkeeping setup
     std::vector<std::string> tags = ParseTag(newChirp.text());
     for (int i = 0; i < tags.size(); i++) {
       std::string ts;
@@ -207,63 +208,65 @@ std::vector<std::string> ServiceLayerImpl::ParseTag(
 }
 
 void ServiceLayerImpl::AddTag(const std::string& hashtag,
-                              const std::string& time,
-			      const std::string& id) {
+                              const std::string& time_str,
+                              const std::string& id) {
   StreamTimes timestamps;
   StreamEntries stream_info;
-  Timestamp curr_time;
-  curr_time.ParseFromString(time);
-
   std::string ts_key = hashtag + kStreamTimestampKey_;
   std::string entry_key;
 
   // Get existing info if already exists in store
   if (store.contain(ts_key)) {
     timestamps.ParseFromString(store.get(ts_key));
-    std::string latest_ts = timestamps.timestamp(timestamps.timestamp_size() - 1);
+    std::string latest_ts =
+        timestamps.timestamp(timestamps.timestamp_size() - 1);
     entry_key = hashtag + "-" + latest_ts;
     std::string streams_str = store.get(entry_key);
     stream_info.ParseFromString(streams_str);
   } else {
     // First chirp with `hashtag`
     // `time` will be the "latest" timestamp
-    entry_key = hashtag + "-" + time;
-    timestamps.add_timestamp(time);
+    entry_key = hashtag + "-" + time_str;
+    timestamps.add_timestamp(time_str);
+
     std::string timestamps_str;
     timestamps.SerializeToString(&timestamps_str);
     store.put(ts_key, timestamps_str);
   }
 
   if (stream_info.streamdata_size() < kStreamTimestampSize_) {
-    // Add data to current stream info entry
-    StreamData* temp_data = stream_info.add_streamdata();
-    temp_data->set_chirp_id(id);
-    temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
-    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
-
-    std::string stream_info_str;
-    stream_info.SerializeToString(&stream_info_str);
-    store.put(entry_key, stream_info_str);
+    AddStreamEntry(&stream_info, id, time_str, entry_key);
   } else {
     // Make new StreamEntries under new key
     StreamEntries new_entries;
-    StreamData* temp_data = new_entries.add_streamdata();
-    temp_data->set_chirp_id(id);
-    temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
-    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
-
-    entry_key = hashtag + "-" + time;
-    std::string new_entries_str;
-    new_entries.SerializeToString(&new_entries_str);
-    store.put(entry_key, new_entries_str);
+    entry_key = hashtag + "-" + time_str;
+    AddStreamEntry(&new_entries, id, time_str, entry_key);
 
     // Need to update timestamp key with new entry
-    timestamps.add_timestamp(time);
+    timestamps.add_timestamp(time_str);
     std::string timestamps_str;
     timestamps.SerializeToString(&timestamps_str);
     store.put(ts_key, timestamps_str);
   }
 }
+
+void ServiceLayerImpl::AddStreamEntry(StreamEntries* stream_info,
+                                      const std::string& id,
+                                      const std::string& time_str,
+                                      std::string key) {
+  Timestamp time;
+  time.ParseFromString(time_str);
+
+  StreamData* data = stream_info->add_streamdata();
+  data->set_chirp_id(id);
+  data->mutable_timestamp()->set_seconds(time.seconds());
+  data->mutable_timestamp()->set_useconds(time.useconds());
+
+  std::string stream_info_str;
+  stream_info->SerializeToString(&stream_info_str);
+  store.put(key, stream_info_str);
+}
+
 // Reading a chirp
 Status ServiceLayerImpl::read(ServerContext* context,
                               const ReadRequest* request, ReadReply* reply) {
@@ -358,26 +361,26 @@ Status ServiceLayerImpl::monitor(ServerContext* context,
 
 Status ServiceLayerImpl::stream(ServerContext* context,
                                 const StreamRequest* request,
-			        ServerWriter<StreamReply>* writer) {
+                                ServerWriter<StreamReply>* writer) {
   std::string username = request->username();
   std::string ts;
   MakeTimestamp(&ts);
   if (!store.contain(username)) {
     return Status::CANCELLED;
   }
-  
+
   std::vector<std::string> chirp_strs;
   StreamReply reply;
   while (true) {
     if (store.contain(request->hashtag() + kStreamTimestampKey_)) {
       chirp_strs = GetStreamChirps(request->hashtag(), ts);
-      MakeTimestamp(&ts); // Update timestamp for next iteration
+      MakeTimestamp(&ts);  // Update timestamp for next iteration
     }
 
     for (const std::string& chirp_str : chirp_strs) {
       Chirp chirp;
       chirp.ParseFromString(chirp_str);
-      
+
       reply.mutable_chirp()->set_username(chirp.username());
       reply.mutable_chirp()->set_text(chirp.text());
       reply.mutable_chirp()->set_id(chirp.id());
@@ -386,15 +389,15 @@ Status ServiceLayerImpl::stream(ServerContext* context,
           chirp.timestamp().seconds());
       reply.mutable_chirp()->mutable_timestamp()->set_useconds(
           chirp.timestamp().useconds());
-      
+
       writer->Write(reply);
     }
-    
+
     // Check if user killed stream()
     if (context->IsCancelled()) {
       break;
     }
-    
+
     usleep(kStreamLoopDelay_);
   }
   return Status::OK;
@@ -418,20 +421,21 @@ std::vector<std::string> ServiceLayerImpl::GetStreamChirps(
     std::string entries_str = store.get(hashtag + "-" + latest_ts_str);
     auto curr_chirps = ParseStreamEntries(entries_str, time_str);
 
-    // Appending to front of `chirps` 
+    // Appending to front of `chirps`
     chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end());
 
-    // Due to reverse chron order of StreamTimes, know if statement will be entered on 1st
-    // instance of latest_ts being older than curr_ts break after
+    // Due to reverse chron order of StreamTimes, know if statement will be
+    // entered on 1st instance of latest_ts being older than curr_ts break after
     // ParsingStreamEntries on older entry because of possibility an entry in
     // bracket is after curr_time break to not check other older entries (only
     // wnat 1st instance)
     //
-    // !(curr_ts seconds less than latest_ts seconds OR 
-    // (curr_ts seconds equal AND curr_ts useconds smaller than latest_ts useconds))
-    // to be more recent than latest_ts
+    // !(curr_ts seconds less than latest_ts seconds OR
+    // (curr_ts seconds equal AND curr_ts useconds smaller than latest_ts
+    // useconds)) to be more recent than latest_ts
     if (!((curr_ts.seconds() < latest_ts.seconds()) ||
-         ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() <= latest_ts.useconds())))) {
+          ((curr_ts.seconds() == latest_ts.seconds()) &&
+           (curr_ts.useconds() <= latest_ts.useconds())))) {
       break;
     }
   }
@@ -452,22 +456,23 @@ std::vector<std::string> ServiceLayerImpl::ParseStreamEntries(
   for (int i = entries.streamdata_size() - 1; i >= 0; i--) {
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
-    
-    // ts seconds smaller than data_ts seconds OR 
+
+    // ts seconds smaller than data_ts seconds OR
     // (ts seconds equals AND ts useconds smaller than data_ts useconds)
     // to be older than data_ts
-    if ((ts.seconds() < data_ts.seconds()) || 
-        ((ts.seconds() == data_ts.seconds()) && (ts.useconds() <= data_ts.useconds()))) {
+    if ((ts.seconds() < data_ts.seconds()) ||
+        ((ts.seconds() == data_ts.seconds()) &&
+         (ts.useconds() <= data_ts.useconds()))) {
       std::string chirp = store.get(data.chirp_id());
       chirps.insert(chirps.begin(), chirp);
     } else {
-      break; // All following chirps will be older than `time_str`, don't want
-             // to interate
+      break;  // All following chirps will be older than `time_str`, don't want
+              // to interate
     }
   }
-
   return chirps;
 }
+
 void ServiceLayerImpl::MakeTimestamp(std::string* ts_str) {
   Timestamp ts;
   timeval t;

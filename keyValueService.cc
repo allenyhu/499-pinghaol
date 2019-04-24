@@ -15,36 +15,35 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using keyValue::KeyValueStore;
-using keyValue::PutRequest;
-using keyValue::PutReply;
-using keyValue::GetRequest;
-using keyValue::GetReply;
-using keyValue::DeleteRequest;
 using keyValue::DeleteReply;
+using keyValue::DeleteRequest;
+using keyValue::GetReply;
+using keyValue::GetRequest;
+using keyValue::KeyValueStore;
+using keyValue::PutReply;
+using keyValue::PutRequest;
 
 // Logic and data behind the server's behavior.
 class GreeterServiceImpl final : public Greeter::Service {
-    
-    Status Get(ServerContext* context, const GetRequest* request,
-               GetReply* reply) override {
-        std::string key(request->key);
-        return Status::OK;
-    }
-    
-    Status Put(ServerContext* context, const PutRequest* request,
-                         PutReply* reply) override {
-        std::string key(request->key);
-        std::string value(request->value);
-        return Status::OK;
-    }
-    
-    Status Delete(ServerContext* context, const DeleteRequest* request,
-               DeleteReply* reply) override {
-        std::string key(request->key);
-        
-        return Status::OK;
-    }
+  Status Get(ServerContext* context, const GetRequest* request,
+             GetReply* reply) override {
+    std::string key(request->key);
+    return Status::OK;
+  }
+
+  Status Put(ServerContext* context, const PutRequest* request,
+             PutReply* reply) override {
+    std::string key(request->key);
+    std::string value(request->value);
+    return Status::OK;
+  }
+
+  Status Delete(ServerContext* context, const DeleteRequest* request,
+                DeleteReply* reply) override {
+    std::string key(request->key);
+
+    return Status::OK;
+  }
 };
 
 void RunServer() {
