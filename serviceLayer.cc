@@ -122,7 +122,6 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
     
     std::vector<std::string> tags = ParseTag(chirp);
     for (int i = 0; i < tags.size(); i++) {
-      std::cout << tags[i] << std::endl;
       std::string* ts = new std::string;
       newChirp.mutable_timestamp()->SerializeToString(ts);
       AddTag(tags[i], *ts, id, store);
@@ -310,14 +309,14 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
 
   while ((index = txt.find(" ")) != std::string::npos) {
     word = txt.substr(0, index);
-    if (!word.empty() && word.at(0) == '#') {
+    if (!word.empty() && word.at(0) == '#' && word.size() > 1) { // don't accept just #
       tags.push_back(word);
     }
     txt = txt.substr(index + 1);
   }
 
   // Used when hashtag is only text
-  if (!txt.empty() && txt.at(0) == '#') {
+  if (!txt.empty() && txt.at(0) == '#' && txt.size() > 1) {
     tags.push_back(txt);
   }
 
