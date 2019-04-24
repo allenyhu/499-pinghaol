@@ -233,7 +233,7 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
 						       KeyValueMap& store) {
   int check_user = store.Contain_map(user);
   if (!check_user) {
-    return std::vector<std::string>(); // TODO: change this with login error message
+    return std::vector<std::string>(); 
   }
   
   if (!store.Contain_map(hashtag + kStreamTimestampKey_)) {
@@ -250,21 +250,28 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
 std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::string& hashtag,
                                                                 const std::string& time,
 								KeyValueMap& store) {
+  std::vector<std::string> chirps;
   
   Timestamp curr_ts;
   curr_ts.ParseFromString(time);
   StreamTimes times;
   times.ParseFromString(store.Get_map(hashtag + kStreamTimestampKey_));
 
-  // TODO: this should be a loop 
   Timestamp latest_ts;
-  std::string latest_ts_str = times.timestamp(times.timestamp_size() - 1);
-  latest_ts.ParseFromString(latest_ts_str);
+  std::string latest_ts_str;
 
-  if (latest_ts.seconds() <= curr_ts.seconds() && latest_ts.useconds() <= curr_ts.useconds()) {
-    // Potentially in latest time entry
+  // This loop iterates through timestamp brackets of stream bookkeeping info in reverse chronological order
+  for (int i = times.timestamp_size() - 1; i >= 0; i--) {
+    latest_ts_str = times.timestamp(i);
+    latest_ts.ParseFromString(latest_ts_str);
     std::string entries_str = store.Get_map(hashtag + "-" + latest_ts_str);
-    return ParseStreamEntries(entries_str, time, store);
+    auto curr_chirps = ParseStreamEntries(entries_str, time, store);
+    chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end()); // appending to front of chirps
+    // Due to reverse chron order, know that this if statement will be entered on 1st instance of latest_ts being older than curr_ts
+    // Will only break after ParsingStreamEntries on 1st instance entry because of possibility an entry in bracket is after curr_time
+    if (!(curr_ts.seconds() <= latest_ts.seconds() && curr_ts.useconds() <= latest_ts.useconds())) {
+      break;
+    }
   }
 }
 
