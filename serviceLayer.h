@@ -1,3 +1,4 @@
+#include <sys/time.h>
 #include <chrono>
 #include <ctime>
 #include <iostream>
@@ -6,7 +7,6 @@
 #include <queue>
 #include <random>
 #include <string>
-#include <sys/time.h>
 #include <thread>
 #include <vector>
 
@@ -45,45 +45,49 @@ using grpc::ServerReader;
 using grpc::ServerReaderWriter;
 using grpc::ServerWriter;
 using grpc::Status;
-using seconds_t = std::chrono::seconds;  // TODO check on this
 
 class ServiceLayerImpliment {
  public:
-  int registeruser(std::string user1, KeyValueMap &store);
+  int registeruser(std::string user1, KeyValueMap& store);
 
-  int follow(std::string user1, std::string user2, KeyValueMap &store);
+  int follow(std::string user1, std::string user2, KeyValueMap& store);
 
-  void setup(KeyValueMap &store);
+  void setup(KeyValueMap& store);
 
-  int add(KeyValueMap &store);
+  int add(KeyValueMap& store);
 
-  int getID(KeyValueMap &store);
+  int getID(KeyValueMap& store);
 
   int chirp(std::string user1, std::string chirp, std::string parent,
-            KeyValueMap &store);
+            KeyValueMap& store);
 
-  std::vector<std::string> read(std::string chirp_id, KeyValueMap &stor);
+  std::vector<std::string> read(std::string chirp_id, KeyValueMap& stor);
 
-  std::vector<std::string> monitor(std::string user1, KeyValueMap &store);
-  
+  std::vector<std::string> monitor(std::string user1, KeyValueMap& store);
+
   // Processes stream requests from the client
   // @param user: the user requesting the stream
   // @param hashtag: the hashtag the user wants to stream
-  // @param time: the serialized string of a timestamp of the last stream request
+  // @param time: the serialized string of a timestamp of the last stream
+  // request
   // @param store: instance of KeyValueMap
   // @ret: vector of chirps with those hashtags
-  std::vector<std::string> stream(const std::string& user, const std::string& hashtag, const std::string& time, KeyValueMap& store);
+  std::vector<std::string> stream(const std::string& user,
+                                  const std::string& hashtag,
+                                  const std::string& time, KeyValueMap& store);
 
   // Utility method to make serialized Timestamp string for current time
-  // @param ts_str: string reference for the Timestamp to be serialized to
-  void MakeTimestamp(std::string* ts_str) ;
+  // @param ts_str: string pointer for the Timestamp to be serialized to
+  void MakeTimestamp(std::string* ts_str);
 
  private:
   int counter = 0;
-  
-  const std::string kStreamTimestampKey_ = "-ts"; // Used for stream bookkeeping
 
-  int kStreamTimestampSize_ = 15; // Number of Timestamps stored in each bookkeeping entry
+  const std::string kStreamTimestampKey_ =
+      "-ts";  // Used for stream bookkeeping
+
+  int kStreamTimestampSize_ =
+      15;  // Number of Timestamps stored in each bookkeeping entry
 
   // Parses chirp text to find a hashtag
   // @param message: the body of the chirp
@@ -95,19 +99,28 @@ class ServiceLayerImpliment {
   // @param time: the timestamp of the chirp was sent at
   // @param store: instance of KeyValueMap
   // @param id: the id of the chirp that used the `tag`
-  void AddTag(const std::string& hashtag, const std::string& time, const std::string& id, KeyValueMap& store);
+  void AddTag(const std::string& hashtag, const std::string& time,
+              const std::string& id, KeyValueMap& store);
 
-  // Helper method to stream(). Checks StreamData for timestamps and collects newer chirps with `tag`
+  // Helper method to stream(). Checks StreamData for timestamps and collects
+  // newer chirps with `tag`
   // @param hashtag: the hashtag being used
   // @param time: the timestamp to be checked against
   // @param store: instance of KeyValueMap
-  // @ret: vector of chirps with `hashtag` that have been made since last stream request
-  std::vector<std::string> GetStreamChirps(const std::string& hashtag, const std::string& time, KeyValueMap& store);
+  // @ret: vector of chirps with `hashtag` that have been made since last stream
+  // request
+  std::vector<std::string> GetStreamChirps(const std::string& hashtag,
+                                           const std::string& time,
+                                           KeyValueMap& store);
 
-  // Helper method to GetStreamChirps(). Checks StreamEntries that are after `time_str`
-  // @param entries_str: serialized string of StreamEntries to be checked against
+  // Helper method to GetStreamChirps(). Checks StreamEntries that are after
+  // `time_str`
+  // @param entries_str: serialized string of StreamEntries to be checked
+  // against
   // @param time_str: serialized string of timestamp chirps must come after
   // @param store: instance of KeyValueMap
   // @ret: vector of chirps in `entries_str` that were made after `time_str`
-  std::vector<std::string> ParseStreamEntries(const std::string& entries_str, const std::string& time_str, KeyValueMap& store);
+  std::vector<std::string> ParseStreamEntries(const std::string& entries_str,
+                                              const std::string& time_str,
+                                              KeyValueMap& store);
 };
