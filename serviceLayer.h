@@ -102,6 +102,16 @@ class ServiceLayerImpliment {
   void AddTag(const std::string& hashtag, const std::string& time_str,
               const std::string& id, KeyValueMap& store);
 
+  // Helper method for AddTag(). Enters actual bookkeeping info
+  // @param stream_info: pointer to streamentry to be added to
+  // @param id: chirp_id
+  // @param time_str: serialized timestamp of chirp to be added
+  // @param key: store key to update bookkeeping data to
+  // @param store: instance of KeyValueMap
+  void AddStreamEntry(StreamEntries* stream_info, const std::string& id,
+                      const std::string& time_str, const std::string& key,
+                      KeyValueMap& store);
+
   // Helper method to stream(). Checks StreamData for timestamps and collects
   // newer chirps with `tag`
   // @param hashtag: the hashtag being used

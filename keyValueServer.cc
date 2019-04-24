@@ -1,45 +1,43 @@
 #include "keyValueServer.h"
-    
-  Status KeyValueStoreImpl::put(ServerContext* context, const PutRequest* request,PutReply* reply)
-  {
-      map.Put_map(request->key(),request->value());
-      return Status::OK;
+
+Status KeyValueStoreImpl::put(ServerContext* context, const PutRequest* request,
+                              PutReply* reply) {
+  map.Put_map(request->key(), request->value());
+  return Status::OK;
+}
+
+Status KeyValueStoreImpl::contain(ServerContext* context,
+                                  const ContainRequest* request,
+                                  ContainReply* reply) {
+  if (map.Contain_map(request->key())) {
+    reply->set_contain(1);
+  } else {
+    reply->set_contain(0);
   }
-  
-  Status KeyValueStoreImpl::contain(ServerContext* context, const ContainRequest* request, ContainReply* reply)
-  {
-      if (map.Contain_map(request->key()))
-      {
-          reply->set_contain(1);
-      }else{
-          reply->set_contain(0);
-      }
-      return Status::OK;
-  }
-  
-  Status KeyValueStoreImpl::get(ServerContext* context,
-                   ServerReaderWriter<GetReply, GetRequest>* stream)  {
-      std::vector<GetRequest> requestList;
-      GetRequest request;
-      std::vector<GetReply> replyList;
-      GetReply reply;
-      while (stream->Read(&request)) {
+  return Status::OK;
+}
 
-          reply.set_value(map.Get_map(request.key()));
-          //cout<<"Value: "<<reply.value()<<endl;
-          stream->Write(reply);
-          }
-
-      return Status::OK;
-  };
-
-
-  Status KeyValueStoreImpl::deletekey(ServerContext* context, const DeleteRequest* request,DeleteReply* reply)
-  {
-      map.Delete_map(request->key());
-      return Status::OK;
+Status KeyValueStoreImpl::get(
+    ServerContext* context, ServerReaderWriter<GetReply, GetRequest>* stream) {
+  std::vector<GetRequest> requestList;
+  GetRequest request;
+  std::vector<GetReply> replyList;
+  GetReply reply;
+  while (stream->Read(&request)) {
+    reply.set_value(map.Get_map(request.key()));
+    // cout<<"Value: "<<reply.value()<<endl;
+    stream->Write(reply);
   }
 
+  return Status::OK;
+};
+
+Status KeyValueStoreImpl::deletekey(ServerContext* context,
+                                    const DeleteRequest* request,
+                                    DeleteReply* reply) {
+  map.Delete_map(request->key());
+  return Status::OK;
+}
 
 void RunServer() {
   std::string server_address("0.0.0.0:50000");
