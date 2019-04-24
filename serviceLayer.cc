@@ -1,7 +1,7 @@
 #include "serviceLayer.h"
 #include <gtest/gtest.h>
 
-int ServiceLayerImpliment::registeruser(std::string user1, KeyValueMap &store) {
+int ServiceLayerImpliment::registeruser(std::string user1, KeyValueMap& store) {
   int contain = store.Contain_map(user1);
   if (contain == 1) {
     return 1;
@@ -13,7 +13,7 @@ int ServiceLayerImpliment::registeruser(std::string user1, KeyValueMap &store) {
   return 1;
 }
 
-void ServiceLayerImpliment::setup(KeyValueMap &store) {
+void ServiceLayerImpliment::setup(KeyValueMap& store) {
   std::string counter_key = "CHIRP_ID_COUNTER";
   std::string counter_value = "0";
   std::string check = store.Get_map(counter_key);
@@ -25,7 +25,7 @@ void ServiceLayerImpliment::setup(KeyValueMap &store) {
   }
 }
 
-int ServiceLayerImpliment::add(KeyValueMap &store) {
+int ServiceLayerImpliment::add(KeyValueMap& store) {
   std::string counter_key = "CHIRP_ID_COUNTER";
   std::string counter_value = "0";
   std::string check = store.Get_map(counter_key);
@@ -41,7 +41,7 @@ int ServiceLayerImpliment::add(KeyValueMap &store) {
   return counter;
 }
 
-int ServiceLayerImpliment::getID(KeyValueMap &store) {
+int ServiceLayerImpliment::getID(KeyValueMap& store) {
   std::string counter_key = "CHIRP_ID_COUNTER";
   std::string counter_value = "0";
   std::string check = store.Get_map(counter_key);
@@ -56,7 +56,7 @@ int ServiceLayerImpliment::getID(KeyValueMap &store) {
 }
 
 int ServiceLayerImpliment::follow(std::string user1, std::string user2,
-                                  KeyValueMap &store) {
+                                  KeyValueMap& store) {
   std::string user = "U:" + user1;
 
   int contain1 = store.Contain_map(user1);
@@ -78,7 +78,7 @@ int ServiceLayerImpliment::follow(std::string user1, std::string user2,
 
     if (!alreadyFollowing) {
       follow.add_username(user2);
-      std::string *output = new std::string;
+      std::string* output = new std::string;
       follow.SerializeToString(output);
       store.Put_map(user, *output);
       delete output;
@@ -89,10 +89,10 @@ int ServiceLayerImpliment::follow(std::string user1, std::string user2,
 }
 
 int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
-                                 std::string parent, KeyValueMap &store) {
+                                 std::string parent, KeyValueMap& store) {
   getID(store);
   Chirp newChirp;
-  
+
   std::string id = std::to_string(counter);
   std::string username = user1;
   Timestamp ts;
@@ -107,7 +107,7 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
   newChirp.mutable_timestamp()->set_useconds(ts.useconds());
   newChirp.set_id(id);
 
-  std::string *output1 = new std::string;
+  std::string* output1 = new std::string;
   newChirp.SerializeToString(output1);
 
   int contain1 = store.Contain_map(user1);
@@ -119,14 +119,14 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
     store.Put_map(id, *output1);
     std::string curr_chirp = store.Get_map(username);
     curr_chirp += id;
-    
+
     std::vector<std::string> tags = ParseTag(chirp);
     for (int i = 0; i < tags.size(); i++) {
-      std::string* ts = new std::string;
-      newChirp.mutable_timestamp()->SerializeToString(ts);
-      AddTag(tags[i], *ts, id, store);
+      std::string ts;
+      newChirp.mutable_timestamp()->SerializeToString(&ts);
+      AddTag(tags[i], ts, id, store);
     }
-    
+
     store.Put_map(username, curr_chirp);
     if (parent != "") {
       if (stoi(parent) <= counter) {
@@ -138,7 +138,7 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
         children.ParseFromString(curr_follow_id);
         children.add_id(id);
 
-        std::string *output2 = new std::string;
+        std::string* output2 = new std::string;
         children.SerializeToString(output2);
         store.Put_map(parent_id, *output2);
         delete output2;
@@ -157,9 +157,9 @@ int ServiceLayerImpliment::chirp(std::string user1, std::string chirp,
 }
 
 std::vector<std::string> ServiceLayerImpliment::read(std::string chirp_id,
-                                                KeyValueMap &store) {
+                                                     KeyValueMap& store) {
   std::vector<std::string> v;
-  Chirp *readChirp = new Chirp;
+  Chirp* readChirp = new Chirp;
 
   int contain = store.Contain_map(chirp_id);
   if (contain == 1) {
@@ -186,7 +186,7 @@ std::vector<std::string> ServiceLayerImpliment::read(std::string chirp_id,
 }
 
 std::vector<std::string> ServiceLayerImpliment::monitor(std::string user1,
-                                                        KeyValueMap &store) {
+                                                        KeyValueMap& store) {
   std::vector<std::string> v;
   std::string username = user1;
   std::string follow = store.Get_map("U:" + user1);
@@ -226,15 +226,14 @@ std::vector<std::string> ServiceLayerImpliment::monitor(std::string user1,
   return v;
 }
 
-std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
-                                                       const std::string& hashtag,
-						       const std::string& time,
-						       KeyValueMap& store) {
+std::vector<std::string> ServiceLayerImpliment::stream(
+    const std::string& user, const std::string& hashtag,
+    const std::string& time, KeyValueMap& store) {
   int check_user = store.Contain_map(user);
   if (!check_user) {
-    return std::vector<std::string>(); 
+    return std::vector<std::string>();
   }
-  
+
   if (!store.Contain_map(hashtag + kStreamTimestampKey_)) {
     // No chirp with `hashtag` has been made yet
     return std::vector<std::string>();
@@ -244,13 +243,12 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
   return chirps;
 }
 
-std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::string& hashtag,
-                                                                const std::string& time,
-								KeyValueMap& store) {
+std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(
+    const std::string& hashtag, const std::string& time_str, KeyValueMap& store) {
   std::vector<std::string> chirps;
-  
+
   Timestamp curr_ts;
-  curr_ts.ParseFromString(time);
+  curr_ts.ParseFromString(time_str);
   StreamTimes times;
   times.ParseFromString(store.Get_map(hashtag + kStreamTimestampKey_));
 
@@ -261,15 +259,18 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::strin
     latest_ts_str = times.timestamp(i);
     latest_ts.ParseFromString(latest_ts_str);
     std::string entries_str = store.Get_map(hashtag + "-" + latest_ts_str);
-    auto curr_chirps = ParseStreamEntries(entries_str, time, store);
-    
+    auto curr_chirps = ParseStreamEntries(entries_str, time_str, store);
+
     // appending to front of chirps
-    chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end()); 
-    
-    // Due to reverse chron order, know if statement will be entered on 1st instance of latest_ts being older than curr_ts
-    // break after ParsingStreamEntries on older entry because of possibility an entry in bracket is after curr_time
-    // break to not check other older entries (only wnat 1st instance)
-    if (!(curr_ts.seconds() <= latest_ts.seconds() && curr_ts.useconds() <= latest_ts.useconds())) {
+    chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end());
+
+    // Due to reverse chron order, know if statement will be entered on 1st
+    // instance of latest_ts being older than curr_ts break after
+    // ParsingStreamEntries on older entry because of possibility an entry in
+    // bracket is after curr_time break to not check other older entries (only
+    // wnat 1st instance)
+    if (!(curr_ts.seconds() <= latest_ts.seconds() &&
+          curr_ts.useconds() <= latest_ts.useconds())) {
       break;
     }
   }
@@ -277,7 +278,9 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::strin
   return chirps;
 }
 
-std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(const std::string& entries_str, const std::string& time_str, KeyValueMap& store) {
+std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(
+    const std::string& entries_str, const std::string& time_str,
+    KeyValueMap& store) {
   std::vector<std::string> chirps;
 
   StreamEntries entries;
@@ -290,18 +293,21 @@ std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(const std::st
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
 
-    if (ts.seconds() <= data_ts.seconds() && ts.useconds() <= data_ts.useconds()) {
-      std::string chirp = store.Get_map(data.chirp_id()); 
-      chirps.insert(chirps.begin(), chirp); // Maintain chronological order
+    if (ts.seconds() <= data_ts.seconds() &&
+        ts.useconds() <= data_ts.useconds()) {
+      std::string chirp = store.Get_map(data.chirp_id());
+      chirps.insert(chirps.begin(), chirp);  // Maintain chronological order
     } else {
-      break; // All following chirps will be older than `time_str`, don't want to iterate
+      break;  // All following chirps will be older than `time_str`, don't want
+              // to iterate
     }
   }
 
   return chirps;
 }
 
-std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& message) {
+std::vector<std::string> ServiceLayerImpliment::ParseTag(
+    const std::string& message) {
   std::vector<std::string> tags;
   std::string txt = message;
   size_t index = 0;
@@ -309,7 +315,8 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
 
   while ((index = txt.find(" ")) != std::string::npos) {
     word = txt.substr(0, index);
-    if (!word.empty() && word.at(0) == '#' && word.size() > 1) { // don't accept just #
+    if (!word.empty() && word.at(0) == '#' &&
+        word.size() > 1) {  // don't accept just #
       tags.push_back(word);
     }
     txt = txt.substr(index + 1);
@@ -323,21 +330,24 @@ std::vector<std::string> ServiceLayerImpliment::ParseTag(const std::string& mess
   return tags;
 }
 
-void ServiceLayerImpliment::AddTag(const std::string& hashtag, const std::string& time, const std::string& id, KeyValueMap& store) {
+void ServiceLayerImpliment::AddTag(const std::string& hashtag,
+                                   const std::string& time,
+                                   const std::string& id, KeyValueMap& store) {
   StreamTimes timestamps;
-  StreamEntries stream_info; 
+  StreamEntries stream_info;
   Timestamp curr_time;
   curr_time.ParseFromString(time);
 
-  std::string ts_key = hashtag + kStreamTimestampKey_; 
+  std::string ts_key = hashtag + kStreamTimestampKey_;
   std::string entry_key;
 
   // Get existing info if already exists in store
   if (store.Contain_map(ts_key)) {
     timestamps.ParseFromString(store.Get_map(ts_key));
-    std::string latest_ts = timestamps.timestamp(timestamps.timestamp_size() - 1);
+    std::string latest_ts =
+        timestamps.timestamp(timestamps.timestamp_size() - 1);
     entry_key = hashtag + "-" + latest_ts;
-    std::string streams_str = store.Get_map(entry_key); 
+    std::string streams_str = store.Get_map(entry_key);
     stream_info.ParseFromString(streams_str);
   } else {
     // First chirp with `tag`
@@ -345,25 +355,22 @@ void ServiceLayerImpliment::AddTag(const std::string& hashtag, const std::string
     entry_key = hashtag + "-" + time;
     timestamps.add_timestamp(time);
 
-    std::string* timestamps_str = new std::string();
-    timestamps.SerializeToString(timestamps_str);
-    store.Put_map(ts_key, *timestamps_str);
-    delete timestamps_str;
+    std::string timestamps_str;
+    timestamps.SerializeToString(&timestamps_str);
+    store.Put_map(ts_key, timestamps_str);
   }
-  
+
   if (stream_info.streamdata_size() < kStreamTimestampSize_) {
-    // Add data to current steam info entry
+    // Add data to current stream info entry
     StreamData* temp_data = stream_info.add_streamdata();
     temp_data->set_chirp_id(id);
     temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
-    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds()); 
+    temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
 
-    std::string* stream_info_str = new std::string();
-    stream_info.SerializeToString(stream_info_str);
-    store.Put_map(entry_key, *stream_info_str);
-    
-    delete stream_info_str;
-  } else { 
+    std::string stream_info_str;
+    stream_info.SerializeToString(&stream_info_str);
+    store.Put_map(entry_key, stream_info_str);
+  } else {
     // Make new StreamEntries under new key
     StreamEntries new_entries;
     StreamData* temp_data = new_entries.add_streamdata();
@@ -371,19 +378,16 @@ void ServiceLayerImpliment::AddTag(const std::string& hashtag, const std::string
     temp_data->mutable_timestamp()->set_seconds(curr_time.seconds());
     temp_data->mutable_timestamp()->set_useconds(curr_time.useconds());
 
-    entry_key = hashtag + "-" + time; // New entry will be in `time` bracket 
-    std::string* new_entries_str = new std::string();
-    new_entries.SerializeToString(new_entries_str);
-    store.Put_map(entry_key, *new_entries_str);
+    entry_key = hashtag + "-" + time;  // New entry will be in `time` bracket
+    std::string new_entries_str; 
+    new_entries.SerializeToString(&new_entries_str);
+    store.Put_map(entry_key, new_entries_str);
 
     // Need to update timestamp key with new entry
     timestamps.add_timestamp(time);
-    std::string* timestamps_str = new std::string();
-    timestamps.SerializeToString(timestamps_str);
-    store.Put_map(ts_key, *timestamps_str);
-    
-    delete new_entries_str;
-    delete timestamps_str;
+    std::string timestamps_str; 
+    timestamps.SerializeToString(&timestamps_str);
+    store.Put_map(ts_key, timestamps_str);
   }
 }
 
@@ -395,4 +399,4 @@ void ServiceLayerImpliment::MakeTimestamp(std::string* ts_str) {
   ts.set_useconds(t.tv_usec);
 
   ts.SerializeToString(ts_str);
-}	
+}
