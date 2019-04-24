@@ -242,8 +242,6 @@ std::vector<std::string> ServiceLayerImpliment::stream(const std::string& user,
   }
 
   std::vector<std::string> chirps = GetStreamChirps(hashtag, time, store);
-  chirps.push_back("test"); // TODO: implement stream functionality
-
   return chirps;
 }
 
@@ -269,8 +267,9 @@ std::vector<std::string> ServiceLayerImpliment::GetStreamChirps(const std::strin
     // appending to front of chirps
     chirps.insert(chirps.begin(), curr_chirps.begin(), curr_chirps.end()); 
     
-    // Due to reverse chron order, know that this if statement will be entered on 1st instance of latest_ts being older than curr_ts
-    // Will only break after ParsingStreamEntries on 1st instance entry because of possibility an entry in bracket is after curr_time
+    // Due to reverse chron order, know if statement will be entered on 1st instance of latest_ts being older than curr_ts
+    // break after ParsingStreamEntries on older entry because of possibility an entry in bracket is after curr_time
+    // break to not check other older entries (only wnat 1st instance)
     if (!(curr_ts.seconds() <= latest_ts.seconds() && curr_ts.useconds() <= latest_ts.useconds())) {
       break;
     }
@@ -287,7 +286,7 @@ std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(const std::st
   Timestamp ts;
   ts.ParseFromString(time_str);
 
-  // Move from most to least recent chirp
+  // Move from most recent to least recent chirp
   for (int i = entries.streamdata_size() - 1; i >= 0; i--) {
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
@@ -296,7 +295,7 @@ std::vector<std::string> ServiceLayerImpliment::ParseStreamEntries(const std::st
       std::string chirp = store.Get_map(data.chirp_id()); 
       chirps.insert(chirps.begin(), chirp); // Maintain chronological order
     } else {
-      break; // All following chirps will be older than `time_str`
+      break; // All following chirps will be older than `time_str`, don't want to iterate
     }
   }
 

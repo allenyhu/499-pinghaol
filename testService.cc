@@ -477,7 +477,7 @@ TEST(ServiceTest, TagEntryMultiTagSingleUser) {
   ASSERT_EQ(1, user_entries.streamdata_size());
 }
 
-//Tests bookkeeping entries for stream
+// Tests bookkeeping entries for stream
 // Multiple chirps, single user, multiple tags
 TEST(ServiceTest, TagEntryMultiTagSingleUserMultiChirp) {
   KeyValueMap store;
@@ -506,6 +506,23 @@ TEST(ServiceTest, TagEntryMultiTagSingleUserMultiChirp) {
   StreamEntries user_entries;
   user_entries.ParseFromString(store.Get_map(user_key));
   ASSERT_EQ(2, user_entries.streamdata_size());
+}
+
+// Tests Stream functionality
+// Single user, single chirp, single tag
+TEST(ServiceStreamTest, StreamBase) {
+  KeyValueMap store;
+  ServiceLayerImpliment service;
+  
+  service.registeruser("user", store);
+
+  std::string ts;
+  service.MakeTimestamp(&ts);
+
+  service.chirp("user", "test #test", "", store);
+
+  auto chirps = service.stream("user", "#test", ts, store);
+  ASSERT_EQ(1, chirps.size()); 
 }
 
 int main(int argc, char **argv) {
