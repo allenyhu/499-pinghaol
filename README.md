@@ -28,3 +28,4 @@ Pinghao Luo pinghaol@usc.edu
 #stream: ./command --user <username> --stream <tag>
     tag must be enclosed in " " and include the #
     Ex: "#tag" is valid but "tag" is not
+    When chirping will only parse hashtag if there is leading whitespace (<text> <tag>), but will accept a chirp with only tag as text
