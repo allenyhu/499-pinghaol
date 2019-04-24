@@ -6,6 +6,7 @@
 #include <queue>
 #include <random>
 #include <string>
+#include <sys/time.h>
 #include <thread>
 #include <vector>
 
@@ -65,11 +66,17 @@ class ServiceLayerImpliment {
 
   std::vector<std::string> monitor(std::string user1, KeyValueMap &store);
   
-  //Processes stream requests from the client
-  //@param user: the user requesting the stream
-  //@param hashtag: the tag the user wants to stream
-  //@ret: vector of chirps with those hashtags
-  std::vector<std::string> stream(const std::string& user, const std::string& hashtag, KeyValueMap& store);
+  // Processes stream requests from the client
+  // @param user: the user requesting the stream
+  // @param hashtag: the hashtag the user wants to stream
+  // @param time: the serialized string of a timestamp of the last stream request
+  // @param store: instance of KeyValueMap
+  // @ret: vector of chirps with those hashtags
+  std::vector<std::string> stream(const std::string& user, const std::string& hashtag, const std::string& time, KeyValueMap& store);
+
+  // Utility method to make serialized Timestamp string for current time
+  // @param ts_str: string reference for the Timestamp to be serialized to
+  void MakeTimestamp(std::string* ts_str) ;
 
  private:
   int counter = 0;
@@ -78,14 +85,29 @@ class ServiceLayerImpliment {
 
   int kStreamTimestampSize_ = 15; // Number of Timestamps stored in each bookkeeping entry
 
-  //Parses chirp text to find a hashtag
-  //@param message: the body of the chirp
-  //@ret: vector of all the tags that this chirp belongs to
+  // Parses chirp text to find a hashtag
+  // @param message: the body of the chirp
+  // @ret: vector of all the tags that this chirp belongs to
   std::vector<std::string> ParseTag(const std::string& message);
 
-  //Sets up all Stream bookkeeping info in store
-  //@param tag: the hashtag being used
-  //@param time: the timestamp of the chirp was sent at
-  //@param id: the id of the chirp that used the `tag`
-  void AddTag(const std::string& tag, const std::string& time, const std::string& id, KeyValueMap& store);
+  // Sets up all Stream bookkeeping info in store
+  // @param hashtag: the hashtag being used
+  // @param time: the timestamp of the chirp was sent at
+  // @param store: instance of KeyValueMap
+  // @param id: the id of the chirp that used the `tag`
+  void AddTag(const std::string& hashtag, const std::string& time, const std::string& id, KeyValueMap& store);
+
+  // Helper method to stream(). Checks StreamData for timestamps and collects newer chirps with `tag`
+  // @param hashtag: the hashtag being used
+  // @param time: the timestamp to be checked against
+  // @param store: instance of KeyValueMap
+  // @ret: vector of chirps with `hashtag` that have been made since last stream request
+  std::vector<std::string> GetStreamChirps(const std::string& hashtag, const std::string& time, KeyValueMap& store);
+
+  // Helper method to GetStreamChirps(). Checks StreamEntries that are after `time_str`
+  // @param entries_str: serialized string of StreamEntries to be checked against
+  // @param time_str: serialized string of timestamp chirps must come after
+  // @param store: instance of KeyValueMap
+  // @ret: vector of chirps in `entries_str` that were made after `time_str`
+  std::vector<std::string> ParseStreamEntries(const std::string& entries_str, const std::string& time_str, KeyValueMap& store);
 };

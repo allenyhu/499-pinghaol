@@ -78,6 +78,7 @@ message StreamReply {
 }
 
 message StreamTimes {
+  // bytes for ease of storing in store
   repeated bytes timestamp = 1;
 }
 
