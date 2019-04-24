@@ -428,14 +428,11 @@ std::vector<std::string> ServiceLayerImpl::GetStreamChirps(
     // entered on 1st instance of latest_ts being older than curr_ts break after
     // ParsingStreamEntries on older entry because of possibility an entry in
     // bracket is after curr_time break to not check other older entries (only
-    // wnat 1st instance)
+    // want 1st instance)
     //
-    // !(curr_ts seconds less than latest_ts seconds OR
-    // (curr_ts seconds equal AND curr_ts useconds smaller than latest_ts
-    // useconds)) to be more recent than latest_ts
-    if (!((curr_ts.seconds() < latest_ts.seconds()) ||
-          ((curr_ts.seconds() == latest_ts.seconds()) &&
-           (curr_ts.useconds() <= latest_ts.useconds())))) {
+    // Check if curr_ts is older than latest_ts
+    bool curr_ts_older = (curr_ts.seconds() < latest_ts.seconds()) || ((curr_ts.seconds() == latest_ts.seconds()) && (curr_ts.useconds() <= latest_ts.useconds()));
+    if (!curr_ts_older) {
       break;
     }
   }
@@ -457,17 +454,14 @@ std::vector<std::string> ServiceLayerImpl::ParseStreamEntries(
     StreamData data = entries.streamdata(i);
     Timestamp data_ts = data.timestamp();
 
-    // ts seconds smaller than data_ts seconds OR
-    // (ts seconds equals AND ts useconds smaller than data_ts useconds)
-    // to be older than data_ts
-    if ((ts.seconds() < data_ts.seconds()) ||
-        ((ts.seconds() == data_ts.seconds()) &&
-         (ts.useconds() <= data_ts.useconds()))) {
+    // Check if ts is older than data_ts
+    bool ts_older = (ts.seconds() < data_ts.seconds()) || ((ts.seconds() == data_ts.seconds()) && (ts.useconds() <= data_ts.useconds()));
+    if (ts_older) {
       std::string chirp = store.get(data.chirp_id());
       chirps.insert(chirps.begin(), chirp);
     } else {
-      break;  // All following chirps will be older than `time_str`, don't want
-              // to interate
+      // All following chirps will be older than `time_str`, don't want to iterate
+      break;  
     }
   }
   return chirps;
