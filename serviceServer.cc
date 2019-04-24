@@ -366,9 +366,6 @@ Status ServiceLayerImpl::stream(ServerContext* context,
     return Status::CANCELLED;
   }
 
-  if (!store.contain(request->hashtag() + kStreamTimestampKey_)) {
-    return Status::OK;
-  }
   
   std::vector<std::string> chirp_strs;
   StreamReply reply;
@@ -404,6 +401,11 @@ Status ServiceLayerImpl::stream(ServerContext* context,
 
 std::vector<std::string> ServiceLayerImpl::GetStreamChirps(
     const std::string& hashtag, const std::string& time_str) {
+  if (!store.contain(hashtag + kStreamTimestampKey_)) {
+    // No chirps with `hashtag` yet
+    return std::vector<std::string>(); 
+  }
+
   std::vector<std::string> chirps;
 
   Timestamp curr_ts;
